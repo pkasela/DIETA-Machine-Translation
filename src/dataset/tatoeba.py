@@ -1,8 +1,10 @@
 import gzip
 import os
 
-class TatoebaDataset:
-    def __init__(self, base_path, split, source_lang, target_lang, v_date="v2023-09-26"):
+from torch.utils.data import Dataset
+
+class TatoebaDataset(Dataset):
+    def __init__(self, base_path, split, source_lang, target_lang, v_date="v2021-08-07"):
         """
         base_path: path to 'tatoeba_dataset'
         split: 'dev' or 'test'
@@ -52,6 +54,6 @@ class TatoebaDataset:
 if __name__ == "__main__":
     import pprint
     base_path = "../../datasets/tatoeba"
-    dataset = FloresDataset(base_path, "test", "eng", "ita")
+    dataset = TatoebaDataset(base_path, "test", "eng", "ita")
     for i in range(5):
         pprint.pp(dataset[i], width=150)

@@ -2,6 +2,7 @@ import os
 import json
 import subprocess
 
+from torch.utils.data import Dataset
 from tqdm import tqdm
 
 def file_len(fname):
@@ -18,7 +19,7 @@ def read_jsonl(path, verbose=True):
         data = [json.loads(line) for line in pbar]
     return data
 
-class Wmt24Dataset:
+class Wmt24Dataset(Dataset):
     def __init__(self, base_path, target_lang):
         """
         base_path: path to 'wmt24_dataset'

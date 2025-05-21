@@ -1,7 +1,8 @@
 import os
 import csv
+from torch.utils.data import Dataset
 
-class FloresDataset:
+class FloresDataset(Dataset):
     def __init__(self, base_path, split, source_lang, target_lang):
         """
         base_path: path to 'flores200_dataset'

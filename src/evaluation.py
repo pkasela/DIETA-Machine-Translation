@@ -19,11 +19,17 @@ def main(tsv_path, metrics=["bleu", "chrf"], comet_model="Unbabel/wmt22-comet-da
         bleu_score = bleu.compute(predictions=preds, references=bleu_references)
         results["bleu"] = bleu_score["bleu"]
 
-    # chrF++
+    # chrF
     if "chrf" in metrics:
         chrf = evaluate.load("chrf")
         chrf_score = chrf.compute(predictions=preds, references=refs)
         results["chrf"] = chrf_score["score"]
+
+    # chrF++
+    if "chrf++" in metrics:
+        chrf = evaluate.load("chrf")
+        chrf_score = chrf.compute(predictions=preds, references=refs, word_order=2)
+        results["chrf++"] = chrf_score["score"]
 
     # COMET
     if "comet" in metrics:
@@ -35,8 +41,8 @@ def main(tsv_path, metrics=["bleu", "chrf"], comet_model="Unbabel/wmt22-comet-da
 
 if __name__ == "__main__":
     results_dir = "../results"
-    model_name = "Helsinki-NLP/opus-mt-tc-big-en-it"
-    dataset_name = "tatoeba"
+    model_name = "facebook/nllb-200-3.3B"
+    dataset_name = "flores"
     tsv_file = os.path.join(results_dir, dataset_name, f"{model_name.replace('/','_')}.tsv")
-    scores = main(tsv_file, metrics=["bleu", "chrf", "comet"])
+    scores = main(tsv_file, metrics=["bleu", "chrf", "chrf++", "comet"])
     print(scores)

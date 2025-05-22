@@ -73,8 +73,9 @@ def make_prompt(src_text, model_name):
 @click.option('--dataset_path', required=True, help='Path to the dataset.')
 @click.option('--results_path', required=True, help='Path to save the results.')
 @click.option('--batch_size', default=128, show_default=True, help='Batch size for DataLoader.')
+@click.option('--num_beam', default=1, show_default=True, help='Number of beams for beam search. If 0, use greedy search.')
 @click.option('--device', default='cuda', show_default=True, help='Device to use for computation.')
-def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, device="cuda"):
+def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, num_beam=0, device="cuda"):
     """
     Main function to load the model and dataset, and perform translation.
 
@@ -115,14 +116,24 @@ def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, d
         if model_name.startswith("facebook/nllb"):
             # For NLLB models, we need to set the target languages
             tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
-            translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.lang_code_to_id['ita_Latn'])
+            if num_beam > 1:
+                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.lang_code_to_id['ita_Latn'], num_beams=num_beam, do_sample=True)
+            else:
+                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.lang_code_to_id['ita_Latn'])
         elif model_name.startswith("facebook/mbart"):
             # For MBART models, we need to set the target languages
             tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
-            translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.lang_code_to_id['it_IT'])
+            if num_beam > 1:
+                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.lang_code_to_id['it_IT'], num_beams=num_beam, do_sample=True)
+            else:
+                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.lang_code_to_id['it_IT'])
+            # translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.lang_code_to_id['it_IT'])
         else:
             tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
-            translated = model.generate(**tokenized_src_text, max_new_tokens=512)
+            if num_beam > 1:
+                translated = model.generate(**tokenized_src_text, num_beams=num_beam, do_sample=True)
+            else:
+                translated = model.generate(**tokenized_src_text, max_new_tokens=512)
         # Decode the translated text
         translations = tokenizer.batch_decode(translated, skip_special_tokens=True)
         for i, translation in enumerate(translated):
@@ -135,7 +146,10 @@ def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, d
     # Save the results as TSV
     df = pd.DataFrame(final)
     
-    tsv_path = os.path.join(results_path, dataset_name, f"{model_name.replace('/','_')}.tsv")
+    if num_beam > 1:
+        tsv_path = os.path.join(results_path, dataset_name, f"{model_name.replace('/','_')}_beam_{num_beam}.tsv")
+    else:
+        tsv_path = os.path.join(results_path, dataset_name, f"{model_name.replace('/','_')}.tsv")
     df.to_csv(tsv_path, sep='\t', index=False)
 
 if __name__ == "__main__":

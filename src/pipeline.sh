@@ -24,7 +24,8 @@ TATOEBA_PATH="../datasets/tatoeba"
 WMT24_PATH="../datasets/wmt24pp"
 RESULTS_PATH="../results"
 BATCH_SIZE=8
-DEVICE="cuda:0"
+DEVICE="cuda:1"
+NUM_BEAM=5
 METRICS="bleu,chrf,chrf++"
 COMET_MODEL="Unbabel/wmt22-comet-da"
 
@@ -46,6 +47,7 @@ for MODEL in "${MODELS[@]}"; do
             --dataset_path "$DATAPATH" \
             --results_path "$RESULTS_PATH" \
             --batch_size $BATCH_SIZE \
+            --num_beam $NUM_BEAM \
             --device $DEVICE
 
         printf ${red}"Evaluating model: $MODEL on dataset: $DATASET\n"${green}
@@ -53,6 +55,7 @@ for MODEL in "${MODELS[@]}"; do
             --results_path "$RESULTS_PATH" \
             --model_name "$MODEL" \
             --dataset_name "$DATASET" \
+            --NUM_BEAM $NUM_BEAM \
             --metrics "$METRICS" \
             --comet_model "$COMET_MODEL"
         

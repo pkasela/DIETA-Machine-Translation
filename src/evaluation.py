@@ -44,10 +44,14 @@ def evaluate_metrics(tsv_path, metrics=["bleu", "chrf"], comet_model="Unbabel/wm
 @click.option('--results_path', required=True, help='Directory where results are stored.')
 @click.option('--model_name', required=True, help='Name of the model (as used in the filename).')
 @click.option('--dataset_name', required=True, help='Name of the dataset (as used in the filename).')
+@click.option('--num_beam', default=1, show_default=True, help='Number of beams for beam search. If 0, use greedy search.')
 @click.option('--metrics', default="bleu,chrf", help='Comma-separated list of metrics to compute (bleu,chrf,chrf++,comet).')
 @click.option('--comet_model', default="Unbabel/wmt22-comet-da", help='COMET model to use.')
-def main(results_path, model_name, dataset_name, metrics, comet_model):
-    tsv_file = os.path.join(results_path, dataset_name, f"{model_name.replace('/','_')}.tsv")
+def main(results_path, model_name, dataset_name, num_beam, metrics, comet_model):
+    if num_beam > 1:
+        tsv_file = os.path.join(results_path, dataset_name, f"{model_name.replace('/','_')}_beam_{num_beam}.tsv")
+    else:
+        tsv_file = os.path.join(results_path, dataset_name, f"{model_name.replace('/','_')}.tsv")
     metrics_list = [m.strip() for m in metrics.split(",")]
     scores = evaluate_metrics(tsv_file, metrics=metrics_list, comet_model=comet_model)
     print(scores)

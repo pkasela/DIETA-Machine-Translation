@@ -5,14 +5,14 @@ green='\033[0;32m'
 clear='\033[0m'
 
 MODELS=(
+    "Helsinki-NLP/opus-mt-en-it"
+    "Helsinki-NLP/opus-mt-tc-big-en-it"
     "ModelSpace/GemmaX2-28-9B-v0.1"
     "ModelSpace/GemmaX2-28-2B-v0.1"
     "facebook/mbart-large-50-many-to-many-mmt"
     "jbochi/madlad400-3b-mt"
     "google/madlad400-3b-mt"
     "jbochi/madlad400-7b-mt-bt"
-    "Helsinki-NLP/opus-mt-en-it"
-    "Helsinki-NLP/opus-mt-tc-big-en-it"
     "facebook/nllb-200-distilled-600M"
     "facebook/nllb-200-distilled-1.3B"
     "facebook/nllb-200-3.3B"
@@ -25,10 +25,10 @@ WMT24_PATH="../datasets/wmt24pp"
 RESULTS_PATH="../results"
 BATCH_SIZE=8
 DEVICE="cuda:0"
-METRICS="bleu,chrf,chrf++,comet"
+METRICS="bleu,chrf,chrf++"
 COMET_MODEL="Unbabel/wmt22-comet-da"
 
-for MODEL in $MODELS; do
+for MODEL in "${MODELS[@]}"; do
     for DATASET in $DATASETS; do
         # Set dataset path based on dataset name
         if [ "$DATASET" = "flores" ]; then
@@ -60,3 +60,12 @@ for MODEL in $MODELS; do
 done
 
 printf ${clear}"All translations and evaluations are done.\n"
+
+METRICS="bleu,chrf,chrf++,comet"
+for DATASET in $DATASETS; do
+    python3 evaluation_table.py \
+        --results_path "$RESULTS_PATH" \
+        --dataset_name "$DATASET" \
+        --metrics "$METRICS" \
+        --comet_model "$COMET_MODEL"
+done

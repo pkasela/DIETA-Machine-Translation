@@ -29,7 +29,6 @@ def get_model_and_tokenizer(model_name):
     if model_name.startswith("Helsinki-NLP/opus-mt"):
         tokenizer = MarianTokenizer.from_pretrained(model_name)
         model = MarianMTModel.from_pretrained(model_name)
-        return model, tokenizer
     if model_name.startswith("facebook/nllb"):
         tokenizer = AutoTokenizer.from_pretrained(model_name, src_lang='eng_Latn', tgt_lang='ita_Latn')
         model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
@@ -40,11 +39,11 @@ def get_model_and_tokenizer(model_name):
         tokenizer = MBart50TokenizerFast.from_pretrained(model_name)
         tokenizer.src_lang = "en_XX"
         model = MBartForConditionalGeneration.from_pretrained(model_name)
-    else:
+    if model_name.startswith("ModelSpace/Gemma"):
         tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side='left')
         model = AutoModelForCausalLM.from_pretrained(model_name)
         
-        return model, tokenizer
+    return model, tokenizer
     
 
 def make_prompt(src_text, model_name):

@@ -25,8 +25,8 @@ TATOEBA_PATH="../datasets/tatoeba"
 WMT24_PATH="../datasets/wmt24pp"
 RESULTS_PATH="../results"
 BATCH_SIZE=1
-DEVICE="cuda:1"
-NUM_BEAM=1
+DEVICE="cuda:0"
+NUM_BEAM=5
 METRICS="bleu,chrf,chrf++"
 COMET_MODEL="Unbabel/wmt22-comet-da"
 

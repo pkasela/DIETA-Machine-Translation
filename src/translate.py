@@ -117,16 +117,16 @@ def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, n
             # For NLLB models, we need to set the target languages
             tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
             if num_beam > 1:
-                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.lang_code_to_id['ita_Latn'], num_beams=num_beam, max_new_tokens=1024)
+                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("ita_Latn"), num_beams=num_beam, max_new_tokens=1024)
             else:
-                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.lang_code_to_id['ita_Latn'], max_new_tokens=1024)
+                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("ita_Latn"), max_new_tokens=1024)
         elif model_name.startswith("facebook/mbart"):
             # For MBART models, we need to set the target languages
             tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
             if num_beam > 1:
-                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.lang_code_to_id['it_IT'], num_beams=num_beam, max_new_tokens=1024)
+                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("it_IT"), num_beams=num_beam, max_new_tokens=1024)
             else:
-                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.lang_code_to_id['it_IT'], max_new_tokens=1024)
+                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("it_IT"), max_new_tokens=1024)
             # translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.lang_code_to_id['it_IT'])
         else:
             tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)

@@ -5,7 +5,6 @@ green='\033[0;32m'
 clear='\033[0m'
 
 MODELS=(
-    "Helsinki-NLP/opus-mt-en-it"
     "Helsinki-NLP/opus-mt-tc-big-en-it"
     "ModelSpace/GemmaX2-28-9B-v0.1"
     "ModelSpace/GemmaX2-28-2B-v0.1"

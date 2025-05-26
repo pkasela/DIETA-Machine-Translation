@@ -1,9 +1,41 @@
 import os
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import pandas as pd
 import evaluate
 import click
 
-def evaluate_metrics(tsv_path, metrics=["bleu", "chrf"], comet_model="Unbabel/wmt22-comet-da"):
+def load_metric_objects(metrics, comet_model, bleurt_model="BLEURT-20"):
+    """
+    Load the specified evaluation metric objects.
+    Args:
+        metrics (list): List of metric names to load.
+        comet_model (str): COMET model to use.
+        bleurt_model (str): BLEURT model to use.
+    Returns:
+        dict: Dictionary of loaded metric objects.
+    """
+    metric_objs = {}
+    for metric in metrics:
+        if metric == "bleu":
+            metric_objs["bleu"] = evaluate.load("bleu")
+        elif metric == "chrf":
+            metric_objs["chrf"] = evaluate.load("chrf")
+        elif metric == "chrf++":
+            metric_objs["chrf++"] = evaluate.load("chrf")
+        elif metric == "comet":
+            metric_objs["comet"] = evaluate.load("comet", model=comet_model)
+        elif metric == "metricx":
+            metric_objs["metricx"] = evaluate.load("google/metricx-23-xl-v2p0")
+        elif metric == "cometkiwi":
+            metric_objs["cometkiwi"] = evaluate.load("Unbabel/wmt23-cometkiwi-da-xl")
+        elif metric == "sacrebleu":
+            metric_objs["sacrebleu"] = evaluate.load("sacrebleu")
+        elif metric == "bleurt":
+            metric_objs["bleurt"] = evaluate.load("bleurt", module_type="metric", checkpoint=bleurt_model)
+    return metric_objs
+
+def evaluate_metrics(tsv_path, metrics, metric_objs):
     df = pd.read_csv(tsv_path, sep='\t')
     refs = df["target"].tolist()
     preds = df["translation"].tolist()
@@ -13,37 +45,62 @@ def evaluate_metrics(tsv_path, metrics=["bleu", "chrf"], comet_model="Unbabel/wm
     bleu_references = [[ref] for ref in refs]
 
     if "bleu" in metrics:
-        bleu = evaluate.load("bleu")
+        bleu = metric_objs["bleu"]
         bleu_score = bleu.compute(predictions=preds, references=bleu_references)
         results["bleu"] = bleu_score["bleu"]
 
     if "chrf" in metrics:
-        chrf = evaluate.load("chrf")
+        chrf = metric_objs["chrf"]
         chrf_score = chrf.compute(predictions=preds, references=refs)
         results["chrf"] = chrf_score["score"]
 
     if "chrf++" in metrics:
-        chrf = evaluate.load("chrf")
-        chrf_score = chrf.compute(predictions=preds, references=refs, word_order=2)
-        results["chrf++"] = chrf_score["score"]
+        chrfpp = metric_objs["chrf++"]
+        chrfpp_score = chrfpp.compute(predictions=preds, references=refs, word_order=2)
+        results["chrf++"] = chrfpp_score["score"]
 
     if "comet" in metrics:
-        comet = evaluate.load("comet", model=comet_model)
+        comet = metric_objs["comet"]
         comet_score = comet.compute(predictions=preds, references=refs, sources=sources)
         results["comet"] = comet_score["mean_score"]
+
+    if "metricx" in metrics:
+        metricx = metric_objs["metricx"]
+        metricx_score = metricx.compute(predictions=preds, references=refs, sources=sources)
+        results["metricx"] = metricx_score["mean_score"]
+
+    if "cometkiwi" in metrics:
+        cometkiwi = metric_objs["cometkiwi"]
+        cometkiwi_score = cometkiwi.compute(predictions=preds, references=refs, sources=sources)
+        results["cometkiwi"] = cometkiwi_score["mean_score"]
+
+    if "sacrebleu" in metrics:
+        sacrebleu = metric_objs["sacrebleu"]
+        sacrebleu_score = sacrebleu.compute(predictions=preds, references=bleu_references)
+        results["sacrebleu"] = sacrebleu_score["score"]
+
+    if "bleurt" in metrics:
+        bleurt = metric_objs["bleurt"]
+        bleurt_score = bleurt.compute(predictions=preds, references=refs)
+        # BLEURT returns a list of scores, take the mean
+        results["bleurt"] = sum(bleurt_score["scores"]) / len(bleurt_score["scores"])
 
     return results
 
 @click.command()
 @click.option('--results_path', required=True, help='Directory where results are stored.')
 @click.option('--dataset_name', required=True, help='Name of the dataset (as used in the filename).')
-@click.option('--metrics', default="bleu,chrf", help='Comma-separated list of metrics to compute (bleu,chrf,chrf++,comet).')
+@click.option('--metrics', default="bleu,chrf", help='Comma-separated list of metrics to compute (bleu,chrf,chrf++,comet,metricx,cometkiwi,sacrebleu,bleurt).')
 @click.option('--comet_model', default="Unbabel/wmt22-comet-da", help='COMET model to use.')
+@click.option('--bleurt_model', default="BLEURT-20", help='BLEURT model to use.')
 @click.option('--sort_by', default=None, help='Metric to sort the table by (ascending order).')
-def main(results_path, dataset_name, metrics, sort_by, comet_model):
+def main(results_path, dataset_name, metrics, sort_by, comet_model, bleurt_model):
     dataset_dir = os.path.join(results_path, dataset_name)
     metrics_list = [m.strip() for m in metrics.split(",")]
     summary = []
+
+    # Load metric objects once
+    metric_objs = load_metric_objects(metrics_list, comet_model, bleurt_model)
 
     for fname in os.listdir(dataset_dir):
         if fname.endswith(".tsv"):
@@ -51,7 +108,7 @@ def main(results_path, dataset_name, metrics, sort_by, comet_model):
             tsv_path = os.path.join(dataset_dir, fname)
             print(f"Evaluating {fname} ...")
             try:
-                scores = evaluate_metrics(tsv_path, metrics=metrics_list, comet_model=comet_model)
+                scores = evaluate_metrics(tsv_path, metrics=metrics_list, metric_objs=metric_objs)
                 row = {dataset_name: model_name}
                 row.update(scores)
                 summary.append(row)

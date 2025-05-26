@@ -107,7 +107,7 @@ def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, n
         dataset = Wmt24Dataset(dataset_path, "it_IT")
     elif dataset_name == "ntrex":
         # Load the NTREX-128 dataset
-        dataset = NtrexDataset(dataset_path, "eng-GB", "ita")
+        dataset = NtrexDataset(dataset_path, "eng-US", "ita")
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=0)
     final = {'source': [], 'target': [], 'translation': []}
     # Iterate through the dataset

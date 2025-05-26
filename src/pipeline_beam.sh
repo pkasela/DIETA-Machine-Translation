@@ -22,9 +22,10 @@ DATASETS="wmt24 flores tatoeba"
 FLORES_PATH="../datasets/flores200_dataset"
 TATOEBA_PATH="../datasets/tatoeba"
 WMT24_PATH="../datasets/wmt24pp"
-RESULTS_PATH="../results"
+NTREX_PATH="../datasets/NTREX-128"
+RESULTS_PATH="../results/en_it"
 BATCH_SIZE=1
-DEVICE="cuda:0"
+DEVICE="cuda:1"
 NUM_BEAM=5
 METRICS="bleu,chrf,chrf++"
 COMET_MODEL="Unbabel/wmt22-comet-da"
@@ -38,6 +39,8 @@ for MODEL in "${MODELS[@]}"; do
             DATAPATH="$TATOEBA_PATH"
         elif [ "$DATASET" = "wmt24" ]; then
             DATAPATH="$WMT24_PATH"
+        elif [ "$DATASET" = "ntrex" ]; then
+            DATAPATH="$NTREX_PATH"
         fi
 
         printf ${clear}"Translating with model: $MODEL on dataset: $DATASET\n"

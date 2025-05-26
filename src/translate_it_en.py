@@ -31,14 +31,14 @@ def get_model_and_tokenizer(model_name):
         tokenizer = MarianTokenizer.from_pretrained(model_name)
         model = MarianMTModel.from_pretrained(model_name)
     if model_name.startswith("facebook/nllb"):
-        tokenizer = AutoTokenizer.from_pretrained(model_name, src_lang='eng_Latn', tgt_lang='ita_Latn')
+        tokenizer = AutoTokenizer.from_pretrained(model_name, src_lang='ita_Latn', tgt_lang='eng_Latn')
         model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
     if model_name.startswith("jbochi/madlad400") or model_name.startswith("google/madlad400"):
         tokenizer = T5Tokenizer.from_pretrained(model_name)
         model = T5ForConditionalGeneration.from_pretrained(model_name)
     if model_name.startswith("facebook/mbart"):
         tokenizer = MBart50TokenizerFast.from_pretrained(model_name)
-        tokenizer.src_lang = "en_XX"
+        tokenizer.src_lang = "it_IT"
         model = MBartForConditionalGeneration.from_pretrained(model_name)
     if model_name.startswith("ModelSpace/Gemma"):
         tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side='left')
@@ -60,11 +60,11 @@ def make_prompt(src_text, model_name):
     """
     if model_name.startswith("jbochi/madlad400") or model_name.startswith("google/madlad400"):
         # For T5 models, we need to add the task prefix
-        # For example, "translate English to Italian: <2it> Hello, how are you?"
-        return f"<2it> {src_text}"
+        # For example, "translate Italian to English: <2en> Ciao, come stai?"
+        return f"<2en> {src_text}"
     elif model_name.startswith("ModelSpace/Gemma"):
         # Prompt for ModelSpace/Gemma
-        return f"Translate this from English to Italian:\nEnglish: {src_text}\nItalian:"
+        return f"Translate this from Italian to English:\nItalian: {src_text}\nEnglish:"
     else:
         return src_text
 
@@ -107,13 +107,13 @@ def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, n
         dataset = Wmt24Dataset(dataset_path, "it_IT")
     elif dataset_name == "ntrex":
         # Load the NTREX-128 dataset
-        dataset = NtrexDataset(dataset_path, "eng-GB", "ita")
+        dataset = NtrexDataset(dataset_path, "eng-US", "ita")
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=0)
     final = {'source': [], 'target': [], 'translation': []}
     # Iterate through the dataset
     for batch in tqdm(dataloader):
         # Translate the source text
-        src_text = batch["source_lang"]
+        src_text = batch["target_lang"]
         # Create the prompt
         prompted_src_text = [make_prompt(text, model_name) for text in src_text]
         # Generate the translation
@@ -121,16 +121,16 @@ def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, n
             # For NLLB models, we need to set the target languages
             tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
             if num_beam > 1:
-                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("ita_Latn"), num_beams=num_beam, max_new_tokens=1024)
+                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("eng_Latn"), num_beams=num_beam, max_new_tokens=1024)
             else:
-                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("ita_Latn"), max_new_tokens=1024)
+                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("eng_Latn"), max_new_tokens=1024)
         elif model_name.startswith("facebook/mbart"):
             # For MBART models, we need to set the target languages
             tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
             if num_beam > 1:
-                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("it_IT"), num_beams=num_beam, max_new_tokens=1024)
+                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("en_XX"), num_beams=num_beam, max_new_tokens=1024)
             else:
-                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("it_IT"), max_new_tokens=1024)
+                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("en_XX"), max_new_tokens=1024)
             # translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.lang_code_to_id['it_IT'])
         else:
             tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
@@ -142,7 +142,7 @@ def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, n
         translations = tokenizer.batch_decode(translated, skip_special_tokens=True)
         for i, translation in enumerate(translated):
             final['source'].append(src_text[i])
-            final['target'].append(batch["target_lang"][i])
+            final['target'].append(batch["source_lang"][i])
             if translations[i].startswith(prompted_src_text[i]) and not model_name.startswith("facebook/mbart"):
                 # Remove the prompt from the translation
                 translations[i] = translations[i][len(prompted_src_text[i]):]

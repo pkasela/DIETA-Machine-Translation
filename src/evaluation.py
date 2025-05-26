@@ -1,4 +1,4 @@
-# pip install evaluate sacrebleu unbabel-comet
+# pip install evaluate sacrebleu unbabel-comet git+https://github.com/google-research/bleurt.git
 import os
 import pandas as pd
 import evaluate

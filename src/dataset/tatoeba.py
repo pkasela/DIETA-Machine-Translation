@@ -4,7 +4,7 @@ import os
 from torch.utils.data import Dataset
 
 class TatoebaDataset(Dataset):
-    def __init__(self, base_path, split, source_lang, target_lang, v_date="v2021-08-07"):
+    def __init__(self, base_path, split, source_lang, target_lang, v_date="v2023-09-26"):
         """
         base_path: path to 'tatoeba_dataset'
         split: 'dev' or 'test'

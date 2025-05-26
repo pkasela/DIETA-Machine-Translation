@@ -139,7 +139,7 @@ def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, n
         for i, translation in enumerate(translated):
             final['source'].append(src_text[i])
             final['target'].append(batch["target_lang"][i])
-            if translations[i].startswith(prompted_src_text[i]):
+            if translations[i].startswith(prompted_src_text[i]) and not model_name.startswith("facebook/mbart"):
                 # Remove the prompt from the translation
                 translations[i] = translations[i][len(prompted_src_text[i]):]
             final['translation'].append(translations[i])

@@ -39,7 +39,8 @@ def evaluate_metrics(tsv_path, metrics=["bleu", "chrf"], comet_model="Unbabel/wm
 @click.option('--dataset_name', required=True, help='Name of the dataset (as used in the filename).')
 @click.option('--metrics', default="bleu,chrf", help='Comma-separated list of metrics to compute (bleu,chrf,chrf++,comet).')
 @click.option('--comet_model', default="Unbabel/wmt22-comet-da", help='COMET model to use.')
-def main(results_path, dataset_name, metrics, comet_model):
+@click.option('--sort_by', default=None, help='Metric to sort the table by (ascending order).')
+def main(results_path, dataset_name, metrics, sort_by, comet_model):
     dataset_dir = os.path.join(results_path, dataset_name)
     metrics_list = [m.strip() for m in metrics.split(",")]
     summary = []
@@ -49,15 +50,22 @@ def main(results_path, dataset_name, metrics, comet_model):
             model_name = fname.replace("_", "/").replace(".tsv", "")
             tsv_path = os.path.join(dataset_dir, fname)
             print(f"Evaluating {fname} ...")
-            scores = evaluate_metrics(tsv_path, metrics=metrics_list, comet_model=comet_model)
-            row = {dataset_name: model_name}
-            row.update(scores)
-            summary.append(row)
+            try:
+                scores = evaluate_metrics(tsv_path, metrics=metrics_list, comet_model=comet_model)
+                row = {dataset_name: model_name}
+                row.update(scores)
+                summary.append(row)
+            except Exception as e:
+                print(f"Error evaluating {fname}: {repr(e)}")
 
     df = pd.DataFrame(summary)
     # Reorder columns: model first, then metrics
     columns = [dataset_name] + [m for m in metrics_list if m in df.columns]
     df = df[columns]
+
+    if sort_by is not None and sort_by in df.columns:
+        df = df.sort_values(by=sort_by, ascending=True, na_position='last')
+
     print(df.to_markdown(index=False))
 
 if __name__ == "__main__":

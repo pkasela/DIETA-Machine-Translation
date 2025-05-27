@@ -31,7 +31,7 @@ METRICS="bleu,chrf,chrf++"
 COMET_MODEL="Unbabel/wmt22-comet-da"
 
 for MODEL in "${MODELS[@]}"; do
-    for DATASET in $DATASETS; do
+    # for DATASET in $DATASETS; do
         # Set dataset path based on dataset name
         if [ "$DATASET" = "flores" ]; then
             DATAPATH="$FLORES_PATH"
@@ -62,7 +62,7 @@ for MODEL in "${MODELS[@]}"; do
             --metrics "$METRICS" \
             --comet_model "$COMET_MODEL"
         
-    done
+    # done
 done
 
 printf ${clear}"All translations and evaluations are done.\n"

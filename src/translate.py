@@ -107,7 +107,7 @@ def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, n
         dataset = Wmt24Dataset(dataset_path, "it_IT")
     elif dataset_name == "ntrex":
         # Load the NTREX-128 dataset
-        dataset = NtrexDataset(dataset_path, "eng-GB", "ita")
+        dataset = NtrexDataset(dataset_path, "eng-US", "ita")
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=0)
     final = {'source': [], 'target': [], 'translation': []}
     # Iterate through the dataset
@@ -121,23 +121,23 @@ def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, n
             # For NLLB models, we need to set the target languages
             tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
             if num_beam > 1:
-                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("ita_Latn"), num_beams=num_beam, max_new_tokens=1024)
+                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("ita_Latn"), num_beams=num_beam)
             else:
-                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("ita_Latn"), max_new_tokens=1024)
+                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("ita_Latn"))
         elif model_name.startswith("facebook/mbart"):
             # For MBART models, we need to set the target languages
             tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
             if num_beam > 1:
-                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("it_IT"), num_beams=num_beam, max_new_tokens=1024)
+                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("it_IT"), num_beams=num_beam)
             else:
-                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("it_IT"), max_new_tokens=1024)
+                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("it_IT"))
             # translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.lang_code_to_id['it_IT'])
         else:
             tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
             if num_beam > 1:
-                translated = model.generate(**tokenized_src_text, num_beams=num_beam, max_new_tokens=1024)
+                translated = model.generate(**tokenized_src_text, num_beams=num_beam, max_new_tokens=512)
             else:
-                translated = model.generate(**tokenized_src_text, max_new_tokens=1024)
+                translated = model.generate(**tokenized_src_text, max_new_tokens=512)
         # Decode the translated text
         translations = tokenizer.batch_decode(translated, skip_special_tokens=True)
         for i, translation in enumerate(translated):

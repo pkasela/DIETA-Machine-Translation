@@ -10,16 +10,13 @@ MODELS=(
     "ModelSpace/GemmaX2-28-9B-v0.1"
     "ModelSpace/GemmaX2-28-2B-v0.1"
     # "facebook/mbart-large-50-many-to-many-mmt"
-    # "jbochi/madlad400-3b-mt"
     # "google/madlad400-3b-mt"
-    # "jbochi/madlad400-7b-mt-bt"
-    # "jbochi/madlad400-7b-mt"
+    # "google/madlad400-7b-mt"
     # "facebook/nllb-200-distilled-600M"
     # "facebook/nllb-200-distilled-1.3B"
     # "facebook/nllb-200-3.3B"
 )
-DATASET="ntrex"
-DATASETS="flores tatoeba wmt24"
+DATASETS="flores tatoeba wmt24 ntrex"
 
 FLORES_PATH="../datasets/flores200_dataset"
 TATOEBA_PATH="../datasets/tatoeba"
@@ -33,7 +30,7 @@ METRICS="bleu,chrf,chrf++"
 COMET_MODEL="Unbabel/wmt22-comet-da"
 
 for MODEL in "${MODELS[@]}"; do
-    # for DATASET in $DATASETS; do
+    for DATASET in $DATASETS; do
         # Set dataset path based on dataset name
         if [ "$DATASET" = "flores" ]; then
             DATAPATH="$FLORES_PATH"
@@ -64,7 +61,7 @@ for MODEL in "${MODELS[@]}"; do
             --metrics "$METRICS" \
             --comet_model "$COMET_MODEL"
         
-    # done
+    done
 done
 
 printf ${clear}"All translations and evaluations are done.\n"

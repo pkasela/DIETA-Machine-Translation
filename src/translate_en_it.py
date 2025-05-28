@@ -93,6 +93,7 @@ def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, n
     # Load the pre-trained model and tokenizer
     model, tokenizer = get_model_and_tokenizer(model_name)
     # Move the model to the specified device
+    model = model.eval()  # Set the model to evaluation mode
     model = model.to(device)
     
     # Load the dataset

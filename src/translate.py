@@ -1,10 +1,18 @@
-# pip install sentencepiece sacremoses
+# pip install sentencepiece sacremoses 
+# pip install -U accelerate bitsandbytes
 
 import os
 import pandas as pd
 import click
+import torch
 from transformers import MarianMTModel, MarianTokenizer
-from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, AutoModelForCausalLM
+from transformers import (
+    AutoModelForSeq2SeqLM, 
+    AutoTokenizer, 
+    AutoModelForCausalLM, 
+    GenerationConfig,
+    BitsAndBytesConfig
+)
 from transformers import T5ForConditionalGeneration, T5Tokenizer
 from transformers import MBartForConditionalGeneration, MBart50TokenizerFast
 from torch.utils.data import DataLoader
@@ -16,7 +24,7 @@ from dataset.wmt24 import Wmt24Dataset
 from dataset.ntrex import NtrexDataset
 
 
-def get_model_and_tokenizer(model_name):
+def get_model_and_tokenizer(model_name, device="cuda"):
     """
     Load the pre-trained model and tokenizer from Hugging Face.
 
@@ -30,19 +38,39 @@ def get_model_and_tokenizer(model_name):
     if model_name.startswith("Helsinki-NLP/opus-mt"):
         tokenizer = MarianTokenizer.from_pretrained(model_name)
         model = MarianMTModel.from_pretrained(model_name)
+        model = model.eval()
+        model = model.to(device)
     if model_name.startswith("facebook/nllb"):
         tokenizer = AutoTokenizer.from_pretrained(model_name, src_lang='eng_Latn', tgt_lang='ita_Latn')
         model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+        model = model.eval()
+        model = model.to(device)
     if model_name.startswith("jbochi/madlad400") or model_name.startswith("google/madlad400"):
         tokenizer = T5Tokenizer.from_pretrained(model_name)
         model = T5ForConditionalGeneration.from_pretrained(model_name)
+        model = model.eval()
+        model = model.to(device)
     if model_name.startswith("facebook/mbart"):
         tokenizer = MBart50TokenizerFast.from_pretrained(model_name)
         tokenizer.src_lang = "en_XX"
         model = MBartForConditionalGeneration.from_pretrained(model_name)
+        model = model.eval()
+        model = model.to(device)
     if model_name.startswith("ModelSpace/Gemma"):
         tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side='left')
         model = AutoModelForCausalLM.from_pretrained(model_name)
+        model = model.eval()
+        model = model.to(device)
+    if model_name.startswith("mii-llm/maestrale"):
+        tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side='left')
+        model = AutoModelForCausalLM.from_pretrained(model_name) #, quantization_config=BitsAndBytesConfig(load_in_8bit=True), device_map=device)
+        model = model.eval()
+        model = model.to(device)
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side='left')
+        model = AutoModelForCausalLM.from_pretrained(model_name)
+        model = model.eval()
+        model = model.to(device)
         
     return model, tokenizer
     
@@ -65,6 +93,13 @@ def make_prompt(src_text, model_name):
     elif model_name.startswith("ModelSpace/Gemma"):
         # Prompt for ModelSpace/Gemma
         return f"Translate this from English to Italian:\nEnglish: {src_text}\nItalian:"
+    elif model_name.startswith("mii-llm/maestrale"):
+        prompt = f'''<|im_start|>system
+Sei un assistente utile.<|im_end|>
+<|im_start|>user
+Traduci questa frase da Inglese a Italiano. Dai solo la traduzione non scrivere altro. Inglese: {src_text}\nItaliano:<|im_end|>
+<|im_start|>assistant'''
+        return prompt
     else:
         return src_text
 
@@ -93,7 +128,8 @@ def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, n
     # Load the pre-trained model and tokenizer
     model, tokenizer = get_model_and_tokenizer(model_name)
     # Move the model to the specified device
-    model = model.to(device)
+    # model = model.eval()  # Set the model to evaluation mode
+    # model = model.to(device)
     
     # Load the dataset
     if dataset_name == "flores":
@@ -112,34 +148,51 @@ def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, n
     final = {'source': [], 'target': [], 'translation': []}
     # Iterate through the dataset
     for batch in tqdm(dataloader):
-        # Translate the source text
-        src_text = batch["source_lang"]
-        # Create the prompt
-        prompted_src_text = [make_prompt(text, model_name) for text in src_text]
-        # Generate the translation
-        if model_name.startswith("facebook/nllb"):
-            # For NLLB models, we need to set the target languages
-            tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
-            if num_beam > 1:
-                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("ita_Latn"), num_beams=num_beam)
+        with torch.no_grad():
+            # Translate the source text
+            src_text = batch["source_lang"]
+            # Create the prompt
+            prompted_src_text = [make_prompt(text, model_name) for text in src_text]
+            # Generate the translation
+            if model_name.startswith("facebook/nllb"):
+                # For NLLB models, we need to set the target languages
+                tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
+                if num_beam > 1:
+                    translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("ita_Latn"), num_beams=num_beam)
+                else:
+                    translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("ita_Latn"))
+            elif model_name.startswith("facebook/mbart"):
+                # For MBART models, we need to set the target languages
+                tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
+                if num_beam > 1:
+                    translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("it_IT"), num_beams=num_beam)
+                else:
+                    translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("it_IT"))
+                # translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.lang_code_to_id['it_IT'])
+            elif model_name.startswith("mii-llm/maestrale"):
+                tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
+                generation_config = GenerationConfig(
+                    do_sample=True,
+                    temperature=0.7,
+                    repetition_penalty=1.2,
+                    top_k=50,
+                    top_p=0.95,
+                    max_new_tokens=512,
+                    num_beams=num_beam,
+                    pad_token_id=tokenizer.eos_token_id,
+                    eos_token_id=tokenizer.convert_tokens_to_ids("<|im_end|>")
+                )
+                translated = model.generate(**tokenized_src_text, generation_config=generation_config)
+                translated = translated[:, len(tokenized_src_text['input_ids'][0]):]  # Remove the prompt
             else:
-                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("ita_Latn"))
-        elif model_name.startswith("facebook/mbart"):
-            # For MBART models, we need to set the target languages
-            tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
-            if num_beam > 1:
-                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("it_IT"), num_beams=num_beam)
-            else:
-                translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("it_IT"))
-            # translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.lang_code_to_id['it_IT'])
-        else:
-            tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
-            if num_beam > 1:
-                translated = model.generate(**tokenized_src_text, num_beams=num_beam, max_new_tokens=512)
-            else:
-                translated = model.generate(**tokenized_src_text, max_new_tokens=512)
+                tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
+                if num_beam > 1:
+                    translated = model.generate(**tokenized_src_text, num_beams=num_beam, max_new_tokens=512)
+                else:
+                    translated = model.generate(**tokenized_src_text, max_new_tokens=512)
         # Decode the translated text
         translations = tokenizer.batch_decode(translated, skip_special_tokens=True)
+        translations = [t.replace('\n','') for t in translations]
         for i, translation in enumerate(translated):
             final['source'].append(src_text[i])
             final['target'].append(batch["target_lang"][i])

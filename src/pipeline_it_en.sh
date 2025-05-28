@@ -5,8 +5,8 @@ green='\033[0;32m'
 clear='\033[0m'
 
 MODELS=(
-    # "Helsinki-NLP/opus-mt-en-it"
-    # "Helsinki-NLP/opus-mt-tc-big-en-it"
+    # "Helsinki-NLP/opus-mt-it-en"
+    # "Helsinki-NLP/opus-mt-tc-big-it-en"
     "ModelSpace/GemmaX2-28-9B-v0.1"
     "ModelSpace/GemmaX2-28-2B-v0.1"
     # "facebook/mbart-large-50-many-to-many-mmt"

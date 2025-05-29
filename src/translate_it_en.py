@@ -57,17 +57,20 @@ def get_model_and_tokenizer(model_name, device):
     if (
         model_name.startswith("ModelSpace/Gemma") or model_name.startswith("mii-llm/maestrale") or 
         model_name.startswith("sapienzanlp/Minerva") or model_name.startswith("DeepMount00/Llama") or
-        model_name.startswith("swap-uniba/LLaMAntino") or model_name.startswith("sapienzanlp/modello-italia")
+        model_name.startswith("swap-uniba/LLaMAntino") or model_name.startswith("sapienzanlp/modello-italia") or
+        model_name.startswith("Unbabel/TowerInstruct") or model_name.startswith("galatolo/cerbero") or
+        model_name.startswith("LeonardPuettmann/PhiMaestra") or model_name.startswith("utter-project/EuroLLM")
     ):
         tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side='left')
         model = AutoModelForCausalLM.from_pretrained(model_name)
         model = model.eval()
         model = model.to(device)
-    else:
-        tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side='left')
+    if model_name.startswith("sag-uniroma2/extremITA-Camoscio"):
+        tokenizer = AutoTokenizer.from_pretrained("yahma/llama-7b-hf")
         model = AutoModelForCausalLM.from_pretrained(model_name)
         model = model.eval()
         model = model.to(device)
+
         
     return model, tokenizer
     
@@ -102,22 +105,25 @@ Inglese:<|im_end|>
         # Prompt for SapienzaNLP/Minerva
         return f'''<s><|start_header_id|> user<|end_header_id|>
         
-Traduci questa frase da Italiano a Inglese. Dai solo la traduzione non scrivere altro. Italiano: {src_text}
-Inglese:<|eot_id|>'''
+Traduci questa frase da Italiano a Inglese. Dai solo la traduzione non scrivere altro.
+Italiano: {src_text}
+Inglese: <|eot_id|>'''
     elif model_name.startswith("DeepMount00/Llama"):
         # Prompt for DeepMount00/Llama
         return f'''<|begin_of_text|><|start_header_id|>user<|end_header_id|>
 
-Traduci questa frase da Italiano a Inglese. Dai solo la traduzione non scrivere altro. Italiano: {src_text}
-Inglese:<|eot_id|><|start_header_id|>assistant<|end_header_id|>'''
+Traduci questa frase da Italiano a Inglese. Dai solo la traduzione non scrivere altro.
+Italiano: {src_text}
+Inglese: <|eot_id|><|start_header_id|>assistant<|end_header_id|>'''
     elif model_name.startswith("swap-uniba/LLaMAntino"):
         # Prompt for swap-uniba/LLaMAntino
         return f'''<|begin_of_text|><|start_header_id|>system<|end_header_id|>
 
 Sei un an assistente AI per la lingua Italiana di nome LLaMAntino-3 ANITA (Advanced Natural-based interaction for the ITAlian language). Rispondi nella lingua usata per la domanda in modo chiaro, semplice ed esaustivo.<|eot_id|><|start_header_id|>user<|end_header_id|>
 
-Traduci questa frase da Italiano a Inglese. Dai solo la traduzione non scrivere altro. Italiano: {src_text}
-Inglese:<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+Traduci questa frase da Italiano a Inglese. Dai solo la traduzione non scrivere altro.
+Italiano: {src_text}
+Inglese: <|eot_id|><|start_header_id|>assistant<|end_header_id|>
 
 '''
     elif model_name.startswith("sapienzanlp/modello-italia"):
@@ -125,10 +131,38 @@ Inglese:<|eot_id|><|start_header_id|>assistant<|end_header_id|>
         return f'''<|system|>
 Tu sei Modello Italia, un modello di linguaggio naturale addestrato da iGenius.</s>
 <|user|>
-Traduci questa frase da Italiano a Inglese. Dai solo la traduzione non scrivere altro. Italiano: {src_text}
-Inglese:</s>
+Traduci questa frase da Italiano a Inglese. Dai solo la traduzione non scrivere altro.
+Italiano: {src_text}
+Inglese: </s>
 <|assistant|>
 
+'''
+    elif model_name.startswith("Unbabel/TowerInstruct"):
+        return f'''<|im_start|>user
+Translate the following text from Italian into English.
+Italian: {src_text}
+English: <|im_end|>
+<|im_start|>assistant
+'''
+    elif model_name.startswith("galatolo/cerbero"):
+        return f"[|Umano|] Traduci questa frase da Italiano a Inglese. Dai solo la traduzione non scrivere altro.\nItaliano: {src_text}\nInglese: \n[|Assistente|]"
+    elif model_name.startswith("sag-uniroma2/extremITA-Camoscio"):
+        return f"Traduci la seguente frase da Italiano a Inglese:\nItaliano: {src_text}\nInglese:"
+    elif model_name.startswith("LeonardPuettmann/PhiMaestra"):
+        return f'''<|system|>
+translate Italian to English: <|end|>
+<|user|>
+{src_text}
+<|assistant|> 
+'''
+    elif model_name.startswith("utter-project/EuroLLM"):
+        return f'''<|im_start|>system
+You are EuroLLM --- an AI assistant specialized in European languages that provides safe, educational and helpful answers.<|im_end|>
+<|im_start|>user
+Translate the following Italian source text to English:
+Italian: {src_text}
+English: <|im_end|>
+<|im_start|>assistant
 '''
     else:
         return src_text
@@ -229,7 +263,34 @@ def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, n
             elif model_name.startswith("sapienzanlp/modello-italia"):
                 tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=False).to(device)
                 translated = model.generate(**tokenized_src_text, do_sample=False, max_new_tokens=200, eos_token_id=tokenizer.convert_tokens_to_ids('|'), pad_token_id=tokenizer.eos_token_id)
+                translated = translated[:, len(tokenized_src_text['input_ids'][0]):] # Remove the prompt
+            elif model_name.startswith("sag-uniroma2/extremITA-Camoscio"):
+                tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=False).to(device)
+                generation_config = GenerationConfig(
+                    temperature=0.2,
+                    top_p=0.75,
+                    top_k=40,
+                    num_beams=4,
+                    do_sample=True
+                )
+                translated = model.generate(**tokenized_src_text, max_new_tokens=200, generation_config=generation_config)
+                translated = translated[:, len(tokenized_src_text['input_ids'][0]):] # Remove the prompt
+            elif model_name.startswith("Unbabel/TowerInstruct"):
+                tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=False).to(device)
+                translated = model.generate(**tokenized_src_text, do_sample=False, max_new_tokens=200, pad_token_id=tokenizer.eos_token_id)
+                translated = translated[:, len(tokenized_src_text['input_ids'][0]):] # Remove the prompt
+            elif model_name.startswith("galatolo/cerbero"):
+                tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=False).to(device)
+                translated = model.generate(**tokenized_src_text, max_new_tokens=200, pad_token_id=tokenizer.eos_token_id, eos_token_id=tokenizer.convert_tokens_to_ids('|'))
                 translated = translated[:, len(tokenized_src_text['input_ids'][0]):translated.shape[1]-2] # Remove the prompt
+            elif model_name.startswith("LeonardPuettmann/PhiMaestra"):
+                tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=False).to(device)
+                translated = model.generate(**tokenized_src_text, max_new_tokens=200, do_sample=False)
+                translated = translated[:, len(tokenized_src_text['input_ids'][0]):] # Remove the prompt
+            elif model_name.startswith("utter-project/EuroLLM"):
+                tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=False).to(device)
+                translated = model.generate(**tokenized_src_text, max_new_tokens=200, pad_token_id=tokenizer.eos_token_id)
+                translated = translated[:, len(tokenized_src_text['input_ids'][0]):] # Remove the prompt
             else:
                 tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
                 if num_beam > 1:

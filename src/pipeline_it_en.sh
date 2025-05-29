@@ -16,10 +16,16 @@ MODELS=(
     # "facebook/nllb-200-distilled-1.3B"
     # "facebook/nllb-200-3.3B"
     # "mii-llm/maestrale-chat-v0.4-beta"
-    "sapienzanlp/modello-italia-9b"
-    "sapienzanlp/Minerva-7B-instruct-v1.0"
+    # "sapienzanlp/modello-italia-9b"
+    # "sapienzanlp/Minerva-7B-instruct-v1.0"
     # "DeepMount00/Llama-3.1-8b-ITA"
     # "swap-uniba/LLaMAntino-3-ANITA-8B-Inst-DPO-ITA"
+    "sag-uniroma2/extremITA-Camoscio-7b"
+    "Unbabel/TowerInstruct-7B-v0.2"
+    "LeonardPuettmann/PhiMaestra-3-Translation"
+    "galatolo/cerbero-7b"
+    "utter-project/EuroLLM-9B-Instruct"
+    "utter-project/EuroLLM-1.7B-Instruct"
 )
 DATASETS="flores tatoeba wmt24 ntrex"
 

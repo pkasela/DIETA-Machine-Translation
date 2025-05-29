@@ -3,8 +3,9 @@
 import os
 import pandas as pd
 import click
+import torch
 from transformers import MarianMTModel, MarianTokenizer
-from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, AutoModelForCausalLM, GenerationConfig
 from transformers import T5ForConditionalGeneration, T5Tokenizer
 from transformers import MBartForConditionalGeneration, MBart50TokenizerFast
 from torch.utils.data import DataLoader
@@ -16,7 +17,7 @@ from dataset.wmt24 import Wmt24Dataset
 from dataset.ntrex import NtrexDataset
 
 
-def get_model_and_tokenizer(model_name):
+def get_model_and_tokenizer(model_name, device):
     """
     Load the pre-trained model and tokenizer from Hugging Face.
 
@@ -53,9 +54,13 @@ def get_model_and_tokenizer(model_name):
         model = AutoModelForCausalLM.from_pretrained(model_name)
         model = model.eval()
         model = model.to(device)
-    if model_name.startswith("mii-llm/maestrale"):
+    if (
+        model_name.startswith("ModelSpace/Gemma") or model_name.startswith("mii-llm/maestrale") or 
+        model_name.startswith("sapienzanlp/Minerva") or model_name.startswith("DeepMount00/Llama") or
+        model_name.startswith("swap-uniba/LLaMAntino") or model_name.startswith("sapienzanlp/modello-italia")
+    ):
         tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side='left')
-        model = AutoModelForCausalLM.from_pretrained(model_name) #, quantization_config=BitsAndBytesConfig(load_in_8bit=True), device_map=device)
+        model = AutoModelForCausalLM.from_pretrained(model_name)
         model = model.eval()
         model = model.to(device)
     else:
@@ -89,9 +94,42 @@ def make_prompt(src_text, model_name):
         prompt = f'''<|im_start|>system
 Sei un assistente utile.<|im_end|>
 <|im_start|>user
-Traduci questa frase da Inglese a Italiano. Dai solo la traduzione non scrivere altro. Inglese: {src_text}\nItaliano:<|im_end|>
+Traduci questa frase da Italiano a Inglese. Dai solo la traduzione non scrivere altro. Italiano: {src_text}
+Inglese:<|im_end|>
 <|im_start|>assistant'''
         return prompt
+    elif model_name.startswith("sapienzanlp/Minerva"):
+        # Prompt for SapienzaNLP/Minerva
+        return f'''<s><|start_header_id|> user<|end_header_id|>
+        
+Traduci questa frase da Italiano a Inglese. Dai solo la traduzione non scrivere altro. Italiano: {src_text}
+Inglese:<|eot_id|>'''
+    elif model_name.startswith("DeepMount00/Llama"):
+        # Prompt for DeepMount00/Llama
+        return f'''<|begin_of_text|><|start_header_id|>user<|end_header_id|>
+
+Traduci questa frase da Italiano a Inglese. Dai solo la traduzione non scrivere altro. Italiano: {src_text}
+Inglese:<|eot_id|><|start_header_id|>assistant<|end_header_id|>'''
+    elif model_name.startswith("swap-uniba/LLaMAntino"):
+        # Prompt for swap-uniba/LLaMAntino
+        return f'''<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+
+Sei un an assistente AI per la lingua Italiana di nome LLaMAntino-3 ANITA (Advanced Natural-based interaction for the ITAlian language). Rispondi nella lingua usata per la domanda in modo chiaro, semplice ed esaustivo.<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+Traduci questa frase da Italiano a Inglese. Dai solo la traduzione non scrivere altro. Italiano: {src_text}
+Inglese:<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+
+'''
+    elif model_name.startswith("sapienzanlp/modello-italia"):
+        # Prompt for SapienzaNLP/modello-italia
+        return f'''<|system|>
+Tu sei Modello Italia, un modello di linguaggio naturale addestrato da iGenius.</s>
+<|user|>
+Traduci questa frase da Italiano a Inglese. Dai solo la traduzione non scrivere altro. Italiano: {src_text}
+Inglese:</s>
+<|assistant|>
+
+'''
     else:
         return src_text
 
@@ -118,7 +156,7 @@ def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, n
     os.makedirs(results_path, exist_ok=True)
     os.makedirs(os.path.join(results_path, dataset_name), exist_ok=True)
     # Load the pre-trained model and tokenizer
-    model, tokenizer = get_model_and_tokenizer(model_name)
+    model, tokenizer = get_model_and_tokenizer(model_name, device)
     # Move the model to the specified device
     # model = model.eval()  # Set the model to evaluation mode
     # model = model.to(device)
@@ -142,7 +180,7 @@ def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, n
     for batch in tqdm(dataloader):
         with torch.no_grad():
             # Translate the source text
-            src_text = batch["source_lang"]
+            src_text = batch["target_lang"]
             # Create the prompt
             prompted_src_text = [make_prompt(text, model_name) for text in src_text]
             # Generate the translation
@@ -176,6 +214,22 @@ def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, n
                 )
                 translated = model.generate(**tokenized_src_text, generation_config=generation_config)
                 translated = translated[:, len(tokenized_src_text['input_ids'][0]):]  # Remove the prompt
+            elif model_name.startswith("sapienzanlp/Minerva"):
+                tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=False).to(device)
+                translated = model.generate(**tokenized_src_text, do_sample=True, max_new_tokens=200, pad_token_id=tokenizer.eos_token_id)
+                translated = translated[:, len(tokenized_src_text['input_ids'][0]):] # Remove the prompt
+            elif model_name.startswith("DeepMount00/Llama"):
+                tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=False).to(device)
+                translated = model.generate(**tokenized_src_text, do_sample=True, max_new_tokens=200, temperature=0.001, pad_token_id=tokenizer.eos_token_id)
+                translated = translated[:, len(tokenized_src_text['input_ids'][0]):] # Remove the prompt
+            elif model_name.startswith("swap-uniba/LLaMAntino"):
+                tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=False).to(device)
+                translated = model.generate(**tokenized_src_text, do_sample=True, max_new_tokens=200, temperature=0.6, top_p=0.9, pad_token_id=tokenizer.eos_token_id)
+                translated = translated[:, len(tokenized_src_text['input_ids'][0]):] # Remove the prompt
+            elif model_name.startswith("sapienzanlp/modello-italia"):
+                tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=False).to(device)
+                translated = model.generate(**tokenized_src_text, do_sample=False, max_new_tokens=200, eos_token_id=tokenizer.convert_tokens_to_ids('|'), pad_token_id=tokenizer.eos_token_id)
+                translated = translated[:, len(tokenized_src_text['input_ids'][0]):translated.shape[1]-2] # Remove the prompt
             else:
                 tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
                 if num_beam > 1:

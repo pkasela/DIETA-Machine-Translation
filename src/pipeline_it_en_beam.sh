@@ -7,14 +7,15 @@ clear='\033[0m'
 MODELS=(
     # "Helsinki-NLP/opus-mt-it-en"
     # "Helsinki-NLP/opus-mt-tc-big-it-en"
-    "ModelSpace/GemmaX2-28-9B-v0.1"
-    "ModelSpace/GemmaX2-28-2B-v0.1"
+    # "ModelSpace/GemmaX2-28-9B-v0.1"
+    # "ModelSpace/GemmaX2-28-2B-v0.1"
     # "facebook/mbart-large-50-many-to-many-mmt"
     # "google/madlad400-3b-mt"
     # "google/madlad400-7b-mt"
     # "facebook/nllb-200-distilled-600M"
     # "facebook/nllb-200-distilled-1.3B"
     # "facebook/nllb-200-3.3B"
+    "mii-llm/maestrale-chat-v0.4-beta"
 )
 DATASETS="flores tatoeba wmt24 ntrex"
 
@@ -24,7 +25,7 @@ WMT24_PATH="../datasets/wmt24pp"
 NTREX_PATH="../datasets/NTREX-128"
 RESULTS_PATH="../results/it_en"
 BATCH_SIZE=1
-DEVICE="cuda:0"
+DEVICE="cuda:1"
 NUM_BEAM=5
 METRICS="bleu"
 COMET_MODEL="Unbabel/wmt22-comet-da"

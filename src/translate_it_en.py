@@ -15,7 +15,7 @@ from dataset.flores import FloresDataset
 from dataset.tatoeba import TatoebaDataset
 from dataset.wmt24 import Wmt24Dataset
 from dataset.ntrex import NtrexDataset
-
+from dataset.wikinews import WikinewsDataset
 
 def get_model_and_tokenizer(model_name, device):
     """
@@ -169,7 +169,7 @@ English: <|im_end|>
 
 @click.command()
 @click.option('--model_name', required=True, help='Name of the pre-trained model.')
-@click.option('--dataset_name', required=True, type=click.Choice(['flores', 'tatoeba', 'wmt24', 'ntrex']), help='Dataset to use.')
+@click.option('--dataset_name', required=True, type=click.Choice(['flores', 'tatoeba', 'wmt24', 'ntrex', 'wikinews']), help='Dataset to use.')
 @click.option('--dataset_path', required=True, help='Path to the dataset.')
 @click.option('--results_path', required=True, help='Path to save the results.')
 @click.option('--batch_size', default=128, show_default=True, help='Batch size for DataLoader.')
@@ -208,6 +208,8 @@ def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, n
     elif dataset_name == "ntrex":
         # Load the NTREX-128 dataset
         dataset = NtrexDataset(dataset_path, "eng-US", "ita")
+    elif dataset_name == "wikinews":
+        dataset = WikinewsDataset(dataset_path, "en", "it")
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=0)
     final = {'source': [], 'target': [], 'translation': []}
     # Iterate through the dataset

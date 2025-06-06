@@ -240,6 +240,13 @@ def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, n
                 else:
                     translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("it_IT"))
                 # translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.lang_code_to_id['it_IT'])
+            elif model_name.startswith("ModelSpace/Gemma"):
+                tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
+                if num_beam > 1:
+                    translated = model.generate(**tokenized_src_text, num_beams=num_beam, max_new_tokens=512)
+                else:
+                    translated = model.generate(**tokenized_src_text, max_new_tokens=512)
+                translated = translated[:, len(tokenized_src_text['input_ids'][0]):] # Remove the prompt
             elif model_name.startswith("mii-llm/maestrale"):
                 tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
                 generation_config = GenerationConfig(

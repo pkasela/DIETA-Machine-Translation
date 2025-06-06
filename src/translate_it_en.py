@@ -34,7 +34,7 @@ def get_model_and_tokenizer(model_name, device):
         model = model.eval()
         model = model.to(device)
     if model_name.startswith("facebook/nllb"):
-        tokenizer = AutoTokenizer.from_pretrained(model_name, src_lang='eng_Latn', tgt_lang='ita_Latn')
+        tokenizer = AutoTokenizer.from_pretrained(model_name, src_lang='ita_Latn', tgt_lang='eng_Latn')
         model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
         model = model.eval()
         model = model.to(device)
@@ -45,7 +45,7 @@ def get_model_and_tokenizer(model_name, device):
         model = model.to(device)
     if model_name.startswith("facebook/mbart"):
         tokenizer = MBart50TokenizerFast.from_pretrained(model_name)
-        tokenizer.src_lang = "en_XX"
+        tokenizer.src_lang = "it_IT"
         model = MBartForConditionalGeneration.from_pretrained(model_name)
         model = model.eval()
         model = model.to(device)
@@ -224,17 +224,24 @@ def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, n
                 # For NLLB models, we need to set the target languages
                 tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
                 if num_beam > 1:
-                    translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("ita_Latn"), num_beams=num_beam)
+                    translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("eng_Latn"), num_beams=num_beam)
                 else:
-                    translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("ita_Latn"))
+                    translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("eng_Latn"))
             elif model_name.startswith("facebook/mbart"):
                 # For MBART models, we need to set the target languages
                 tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
                 if num_beam > 1:
-                    translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("it_IT"), num_beams=num_beam)
+                    translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("en_XX"), num_beams=num_beam)
                 else:
-                    translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("it_IT"))
+                    translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.convert_tokens_to_ids("en_XX"))
                 # translated = model.generate(**tokenized_src_text, forced_bos_token_id=tokenizer.lang_code_to_id['it_IT'])
+            elif model_name.startswith("ModelSpace/Gemma"):                                                                                                                 
+                tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)                                                                                                                 
+                if num_beam > 1:                                                                                                                                                                          
+                    translated = model.generate(**tokenized_src_text, num_beams=num_beam, max_new_tokens=512)                                                                                                                 
+                else:                                                                                                                                                                          
+                    translated = model.generate(**tokenized_src_text, max_new_tokens=512)                                                                                                                 
+                translated = translated[:, len(tokenized_src_text['input_ids'][0]):] # Remove the prompt
             elif model_name.startswith("mii-llm/maestrale"):
                 tokenized_src_text = tokenizer(prompted_src_text, return_tensors="pt", padding=True).to(device)
                 generation_config = GenerationConfig(

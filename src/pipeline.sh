@@ -5,27 +5,27 @@ green='\033[0;32m'
 clear='\033[0m'
 
 MODELS=(
-    "Helsinki-NLP/opus-mt-en-it"
-    "Helsinki-NLP/opus-mt-tc-big-en-it"
-    "ModelSpace/GemmaX2-28-9B-v0.1"
-     "ModelSpace/GemmaX2-28-2B-v0.1"
+    # "Helsinki-NLP/opus-mt-en-it"
+    # "Helsinki-NLP/opus-mt-tc-big-en-it"
+    #"ModelSpace/GemmaX2-28-9B-v0.1"
+    # "ModelSpace/GemmaX2-28-2B-v0.1"
      "facebook/mbart-large-50-many-to-many-mmt"
-     "google/madlad400-3b-mt"
-     "google/madlad400-7b-mt"
-     "facebook/nllb-200-distilled-600M"
-     "facebook/nllb-200-distilled-1.3B"
-     "facebook/nllb-200-3.3B"
-     "mii-llm/maestrale-chat-v0.4-beta"
-     "sapienzanlp/modello-italia-9b"
-     "sapienzanlp/Minerva-7B-instruct-v1.0"
-     "DeepMount00/Llama-3.1-8b-ITA"
-     "swap-uniba/LLaMAntino-3-ANITA-8B-Inst-DPO-ITA"
+    # "google/madlad400-3b-mt"
+    # "google/madlad400-7b-mt"
+    "facebook/nllb-200-distilled-600M"
+    "facebook/nllb-200-distilled-1.3B"
+    "facebook/nllb-200-3.3B"
+    # "mii-llm/maestrale-chat-v0.4-beta"
+   #  "sapienzanlp/modello-italia-9b"
+   #  "sapienzanlp/Minerva-7B-instruct-v1.0"
+    # "DeepMount00/Llama-3.1-8b-ITA"
+    # "swap-uniba/LLaMAntino-3-ANITA-8B-Inst-DPO-ITA"
     # "sag-uniroma2/extremITA-Camoscio-7b"
-     "Unbabel/TowerInstruct-7B-v0.2"
-     "LeonardPuettmann/PhiMaestra-3-Translation"
-     "galatolo/cerbero-7b"
-     "utter-project/EuroLLM-9B-Instruct"
-     "utter-project/EuroLLM-1.7B-Instruct"
+    # "Unbabel/TowerInstruct-7B-v0.2"
+    # "LeonardPuettmann/PhiMaestra-3-Translation"
+    # "galatolo/cerbero-7b"
+    # "utter-project/EuroLLM-9B-Instruct"
+    # "utter-project/EuroLLM-1.7B-Instruct"
 )
 # DATASETS="flores tatoeba wmt24 ntrex"
 DATASETS=(
@@ -82,8 +82,8 @@ done
 
 printf ${clear}"All translations and evaluations are done.\n"
 
-METRICS="bleu,chrf,chrf++"
-for DATASET in $DATASETS; do
+METRICS="bleu,chrf,chrf++,comet,sacrebleu"
+for DATASET in "${DATASETS[@]}"; do
     python3 evaluation_table.py \
         --results_path "$RESULTS_PATH" \
         --dataset_name "$DATASET" \

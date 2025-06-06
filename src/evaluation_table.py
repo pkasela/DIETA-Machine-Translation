@@ -36,7 +36,7 @@ def load_metric_objects(metrics, comet_model, bleurt_model="BLEURT-20"):
     return metric_objs
 
 def evaluate_metrics(tsv_path, metrics, metric_objs):
-    df = pd.read_csv(tsv_path, sep='\t', quotechar='\'')
+    df = pd.read_csv(tsv_path, sep='\t', lineterminator='\n')
     refs = df["target"].tolist()
     preds = df["translation"].tolist()
     sources = df["source"].tolist()

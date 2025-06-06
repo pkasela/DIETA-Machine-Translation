@@ -9,12 +9,12 @@ MODELS=(
     # "Helsinki-NLP/opus-mt-tc-big-en-it"
     #"ModelSpace/GemmaX2-28-9B-v0.1"
     # "ModelSpace/GemmaX2-28-2B-v0.1"
-     "facebook/mbart-large-50-many-to-many-mmt"
+    # "facebook/mbart-large-50-many-to-many-mmt"
     # "google/madlad400-3b-mt"
     # "google/madlad400-7b-mt"
-    "facebook/nllb-200-distilled-600M"
-    "facebook/nllb-200-distilled-1.3B"
-    "facebook/nllb-200-3.3B"
+    #"facebook/nllb-200-distilled-600M"
+    #"facebook/nllb-200-distilled-1.3B"
+    #"facebook/nllb-200-3.3B"
     # "mii-llm/maestrale-chat-v0.4-beta"
    #  "sapienzanlp/modello-italia-9b"
    #  "sapienzanlp/Minerva-7B-instruct-v1.0"
@@ -42,6 +42,7 @@ DEVICE="cuda"
 NUM_BEAM=1
 METRICS="bleu,chrf,chrf++"
 COMET_MODEL="Unbabel/wmt22-comet-da"
+#COMET_MODEL="Unbabel/wmt23-cometkiwi-da-xl"
 
 for MODEL in "${MODELS[@]}"; do
     for DATASET in "${DATASETS[@]}"; do
@@ -82,7 +83,7 @@ done
 
 printf ${clear}"All translations and evaluations are done.\n"
 
-METRICS="bleu,chrf,chrf++,comet,sacrebleu"
+METRICS="bleu,chrf,chrf++,comet,sacrebleu,cometkiwi"
 for DATASET in "${DATASETS[@]}"; do
     python3 evaluation_table.py \
         --results_path "$RESULTS_PATH" \

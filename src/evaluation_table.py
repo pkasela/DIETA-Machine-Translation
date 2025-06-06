@@ -5,6 +5,8 @@ import pandas as pd
 import evaluate
 import click
 
+from comet import download_model, load_from_checkpoint
+
 def load_metric_objects(metrics, comet_model, bleurt_model="BLEURT-20"):
     """
     Load the specified evaluation metric objects.
@@ -28,7 +30,10 @@ def load_metric_objects(metrics, comet_model, bleurt_model="BLEURT-20"):
         elif metric == "metricx":
             metric_objs["metricx"] = evaluate.load("google/metricx-23-xl-v2p0")
         elif metric == "cometkiwi":
-            metric_objs["cometkiwi"] = evaluate.load("Unbabel/wmt23-cometkiwi-da-xl")
+            model_path = download_model("Unbabel/wmt23-cometkiwi-da-xl")
+            model = load_from_checkpoint(model_path)
+            model = model.cuda()
+            metric_objs["cometkiwi"] = model #evaluate.load("Unbabel/wmt23-cometkiwi-da-xl")
         elif metric == "sacrebleu":
             metric_objs["sacrebleu"] = evaluate.load("sacrebleu")
         elif metric == "bleurt":
@@ -71,7 +76,8 @@ def evaluate_metrics(tsv_path, metrics, metric_objs):
 
     if "cometkiwi" in metrics:
         cometkiwi = metric_objs["cometkiwi"]
-        cometkiwi_score = cometkiwi.compute(predictions=preds, references=refs, sources=sources)
+        data = [{"src": src, "mt": mt} for src, mt in zip(sources, preds)]
+        cometkiwi_score = cometkiwi.predict(data, batch_size=1)
         results["cometkiwi"] = cometkiwi_score["mean_score"]
 
     if "sacrebleu" in metrics:

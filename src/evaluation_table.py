@@ -42,10 +42,11 @@ def load_metric_objects(metrics, comet_model, bleurt_model="BLEURT-20"):
             metrix_model = metrix_model.eval()
             metric_objs["metricx"] = (metrix_model, metrix_tokenizer, reference_free, max_input_length)
         elif metric == "cometkiwi":
+            reference_free = True
             model_path = download_model("Unbabel/wmt23-cometkiwi-da-xl")
             cometkiwi_model = load_from_checkpoint(model_path)
             cometkiwi_model = cometkiwi_model.cuda()
-            metric_objs["cometkiwi"] = cometkiwi_model #evaluate.load("Unbabel/wmt23-cometkiwi-da-xl")
+            metric_objs["cometkiwi"] = cometkiwi_model, reference_free #evaluate.load("Unbabel/wmt23-cometkiwi-da-xl")
         elif metric == "sacrebleu":
             metric_objs["sacrebleu"] = evaluate.load("sacrebleu")
         elif metric == "bleurt":
@@ -105,8 +106,12 @@ def evaluate_metrics(tsv_path, metrics, metric_objs):
     results["metricx"] = torch.tensor(metricx_values).mean().item()
 
     if "cometkiwi" in metrics:
-        cometkiwi = metric_objs["cometkiwi"]
+        cometkiwi, reference_free = metric_objs["cometkiwi"]
         data = [{"src": src, "mt": mt} for src, mt in zip(sources, preds)]
+        if reference_free:
+            data = [{"src": src, "mt": mt} for src, mt in zip(sources, preds)]
+        else:
+            data = [{"src": src, "mt": mt, "ref": ref} for src, mt, ref in zip(sources, preds, refs)]
         cometkiwi_score = cometkiwi.predict(data, batch_size=1)
         results["cometkiwi"] = cometkiwi_score["system_score"]
 

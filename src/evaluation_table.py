@@ -6,6 +6,8 @@ import evaluate
 import click
 
 from comet import download_model, load_from_checkpoint
+from metrix23.models import MT5ForRegression
+from transformers import AutoTokenizer
 
 def load_metric_objects(metrics, comet_model, bleurt_model="BLEURT-20"):
     """
@@ -28,12 +30,19 @@ def load_metric_objects(metrics, comet_model, bleurt_model="BLEURT-20"):
         elif metric == "comet":
             metric_objs["comet"] = evaluate.load("comet", model=comet_model)
         elif metric == "metricx":
-            metric_objs["metricx"] = evaluate.load("google/metricx-23-xl-v2p0")
+            metrix_model_name = "google/metricx-23-xl-v2p0"
+            metrix_tokenizer_name = "google/mt5-xl"
+            reference_free = True
+            max_input_length = 1024
+            metrix_tokenizer = AutoTokenizer.from_pretrained(metrix_tokenizer_name)
+            metrix_model = MT5ForRegression.from_pretrained(metrix_model_name)
+            metrix_model = metrix_model.cuda()
+            metric_objs["metricx"] = (metrix_model, metrix_tokenizer, reference_free, max_input_length)
         elif metric == "cometkiwi":
             model_path = download_model("Unbabel/wmt23-cometkiwi-da-xl")
-            model = load_from_checkpoint(model_path)
-            model = model.cuda()
-            metric_objs["cometkiwi"] = model #evaluate.load("Unbabel/wmt23-cometkiwi-da-xl")
+            cometkiwi_model = load_from_checkpoint(model_path)
+            cometkiwi_model = cometkiwi_model.cuda()
+            metric_objs["cometkiwi"] = cometkiwi_model #evaluate.load("Unbabel/wmt23-cometkiwi-da-xl")
         elif metric == "sacrebleu":
             metric_objs["sacrebleu"] = evaluate.load("sacrebleu")
         elif metric == "bleurt":
@@ -70,15 +79,33 @@ def evaluate_metrics(tsv_path, metrics, metric_objs):
         results["comet"] = comet_score["mean_score"]
 
     if "metricx" in metrics:
-        metricx = metric_objs["metricx"]
-        metricx_score = metricx.compute(predictions=preds, references=refs, sources=sources)
-        results["metricx"] = metricx_score["mean_score"]
+        metrix_model, metrix_tokenizer, reference_free, max_input_length = metric_objs["metricx"]
+        metricx_values = []
+        for i in range(len(sources)):
+           if reference_free:
+               input_text = f"candidate: {preds[i]} source: {sources[i]}"
+           else:
+               input_text = f"candidate: {preds[i]} reference: {refs[i]}"
+        enc = metrix_tokenizer(
+            input_text,
+            max_length=max_input_length,
+            truncation=True,
+            padding=False,
+            return_tensors="pt"
+        )
+        # Remove EOS token (last token)
+        input_ids = enc["input_ids"][0][:-1].cuda()
+        attention_mask = enc["attention_mask"][0][:-1].cuda()
+        metricx_score = metricx_model(input_ids, attention_mask)
+        import ipdb; ipdb.set_trace()
+        metrics_values.append(metricx_score["predictions"])
+    results["metricx"] = torch.tensor(metricx_score).mean().value
 
     if "cometkiwi" in metrics:
         cometkiwi = metric_objs["cometkiwi"]
         data = [{"src": src, "mt": mt} for src, mt in zip(sources, preds)]
         cometkiwi_score = cometkiwi.predict(data, batch_size=1)
-        results["cometkiwi"] = cometkiwi_score["mean_score"]
+        results["cometkiwi"] = cometkiwi_score["system_score"]
 
     if "sacrebleu" in metrics:
         sacrebleu = metric_objs["sacrebleu"]

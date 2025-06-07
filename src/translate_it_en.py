@@ -31,7 +31,7 @@ def get_model_and_tokenizer(model_name, device):
     if model_name.startswith("Helsinki-NLP/opus-mt"):
         tokenizer = MarianTokenizer.from_pretrained(model_name)
         model = MarianMTModel.from_pretrained(model_name)
-        model = model.eval()
+        # model = model.eval()
         model = model.to(device)
     if model_name.startswith("facebook/nllb"):
         tokenizer = AutoTokenizer.from_pretrained(model_name, src_lang='ita_Latn', tgt_lang='eng_Latn')

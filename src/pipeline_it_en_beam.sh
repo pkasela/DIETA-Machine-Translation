@@ -6,10 +6,10 @@ clear='\033[0m'
 
 MODELS=(
     #"Helsinki-NLP/opus-mt-it-en"
-    # "Helsinki-NLP/opus-mt-tc-big-it-en"
+    "Helsinki-NLP/opus-mt-tc-big-it-en"
     #"ModelSpace/GemmaX2-28-9B-v0.1"
     #"ModelSpace/GemmaX2-28-2B-v0.1"
-    "facebook/mbart-large-50-many-to-many-mmt"
+    #"facebook/mbart-large-50-many-to-many-mmt"
     #"google/madlad400-3b-mt"
     #"google/madlad400-7b-mt"
     #"facebook/nllb-200-distilled-600M"

@@ -43,7 +43,9 @@ def load_metric_objects(metrics, comet_model, bleurt_model="BLEURT-20"):
             metric_objs["metricx"] = (metrix_model, metrix_tokenizer, reference_free, max_input_length)
         elif metric == "cometkiwi":
             reference_free = True
-            model_path = download_model("Unbabel/wmt23-cometkiwi-da-xl")
+            cometkiwi_model_name = "Unbabel/wmt23-cometkiwi-da-xl"
+            cometkiwi_model_name = "Unbabel/XCOMET-XL"
+            model_path = download_model(cometkiwi_model_name)
             cometkiwi_model = load_from_checkpoint(model_path)
             cometkiwi_model = cometkiwi_model.cuda()
             metric_objs["cometkiwi"] = cometkiwi_model, reference_free #evaluate.load("Unbabel/wmt23-cometkiwi-da-xl")
@@ -103,7 +105,7 @@ def evaluate_metrics(tsv_path, metrics, metric_objs):
         metricx_score = metricx_model(input_ids.unsqueeze(0), attention_mask.unsqueeze(0))
         # import ipdb; ipdb.set_trace()
         metricx_values.append(metricx_score["predictions"].item())
-    results["metricx"] = torch.tensor(metricx_values).mean().item()
+        results["metricx"] = torch.tensor(metricx_values).mean().item()
 
     if "cometkiwi" in metrics:
         cometkiwi, reference_free = metric_objs["cometkiwi"]

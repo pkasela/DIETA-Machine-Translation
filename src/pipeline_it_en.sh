@@ -86,7 +86,8 @@ done
 
 printf ${clear}"All translations and evaluations are done.\n"
 
-METRICS="bleu,chrf,chrf++,comet,sacrebleu,cometkiwi"
+#METRICS="bleu,chrf,chrf++,comet,sacrebleu,cometkiwi"
+METRICS="bleu,metricx"
 for DATASET in "${DATASETS[@]}"; do
     python3 evaluation_table.py \
         --results_path "$RESULTS_PATH" \

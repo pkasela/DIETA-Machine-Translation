@@ -4,6 +4,8 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 import pandas as pd
 import evaluate
 import click
+import torch
+from tqdm import tqdm
 
 from comet import download_model, load_from_checkpoint
 from metrix23.models import MT5ForRegression
@@ -37,6 +39,7 @@ def load_metric_objects(metrics, comet_model, bleurt_model="BLEURT-20"):
             metrix_tokenizer = AutoTokenizer.from_pretrained(metrix_tokenizer_name)
             metrix_model = MT5ForRegression.from_pretrained(metrix_model_name)
             metrix_model = metrix_model.cuda()
+            metrix_model = metrix_model.eval()
             metric_objs["metricx"] = (metrix_model, metrix_tokenizer, reference_free, max_input_length)
         elif metric == "cometkiwi":
             model_path = download_model("Unbabel/wmt23-cometkiwi-da-xl")
@@ -79,14 +82,14 @@ def evaluate_metrics(tsv_path, metrics, metric_objs):
         results["comet"] = comet_score["mean_score"]
 
     if "metricx" in metrics:
-        metrix_model, metrix_tokenizer, reference_free, max_input_length = metric_objs["metricx"]
+        metricx_model, metricx_tokenizer, reference_free, max_input_length = metric_objs["metricx"]
         metricx_values = []
         for i in range(len(sources)):
            if reference_free:
                input_text = f"candidate: {preds[i]} source: {sources[i]}"
            else:
                input_text = f"candidate: {preds[i]} reference: {refs[i]}"
-        enc = metrix_tokenizer(
+        enc = metricx_tokenizer(
             input_text,
             max_length=max_input_length,
             truncation=True,
@@ -96,10 +99,10 @@ def evaluate_metrics(tsv_path, metrics, metric_objs):
         # Remove EOS token (last token)
         input_ids = enc["input_ids"][0][:-1].cuda()
         attention_mask = enc["attention_mask"][0][:-1].cuda()
-        metricx_score = metricx_model(input_ids, attention_mask)
-        import ipdb; ipdb.set_trace()
-        metrics_values.append(metricx_score["predictions"])
-    results["metricx"] = torch.tensor(metricx_score).mean().value
+        metricx_score = metricx_model(input_ids.unsqueeze(0), attention_mask.unsqueeze(0))
+        # import ipdb; ipdb.set_trace()
+        metricx_values.append(metricx_score["predictions"].item())
+    results["metricx"] = torch.tensor(metricx_values).mean().item()
 
     if "cometkiwi" in metrics:
         cometkiwi = metric_objs["cometkiwi"]

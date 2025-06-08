@@ -32,7 +32,7 @@ def load_metric_objects(metrics, comet_model, bleurt_model="BLEURT-20"):
         elif metric == "comet":
             metric_objs["comet"] = evaluate.load("comet", model=comet_model)
         elif metric == "metricx":
-            metrix_model_name = "google/metricx-23-xl-v2p0"
+            metrix_model_name = "google/metricx-23-qe-xl-v2p0"
             metrix_tokenizer_name = "google/mt5-xl"
             reference_free = True
             max_input_length = 1024
@@ -44,7 +44,7 @@ def load_metric_objects(metrics, comet_model, bleurt_model="BLEURT-20"):
         elif metric == "cometkiwi":
             reference_free = True
             cometkiwi_model_name = "Unbabel/wmt23-cometkiwi-da-xl"
-            cometkiwi_model_name = "Unbabel/XCOMET-XL"
+            # cometkiwi_model_name = "Unbabel/XCOMET-XL"
             model_path = download_model(cometkiwi_model_name)
             cometkiwi_model = load_from_checkpoint(model_path)
             cometkiwi_model = cometkiwi_model.cuda()
@@ -88,33 +88,34 @@ def evaluate_metrics(tsv_path, metrics, metric_objs):
         metricx_model, metricx_tokenizer, reference_free, max_input_length = metric_objs["metricx"]
         metricx_values = []
         for i in range(len(sources)):
-           if reference_free:
-               input_text = f"candidate: {preds[i]} source: {sources[i]}"
-           else:
-               input_text = f"candidate: {preds[i]} reference: {refs[i]}"
-        enc = metricx_tokenizer(
-            input_text,
-            max_length=max_input_length,
-            truncation=True,
-            padding=False,
-            return_tensors="pt"
-        )
-        # Remove EOS token (last token)
-        input_ids = enc["input_ids"][0][:-1].cuda()
-        attention_mask = enc["attention_mask"][0][:-1].cuda()
-        metricx_score = metricx_model(input_ids.unsqueeze(0), attention_mask.unsqueeze(0))
-        # import ipdb; ipdb.set_trace()
-        metricx_values.append(metricx_score["predictions"].item())
+            if reference_free:
+                input_text = f"candidate: {preds[i]} source: {sources[i]}"
+            else:
+                input_text = f"candidate: {preds[i]} reference: {refs[i]}"
+            enc = metricx_tokenizer(
+                input_text,
+                max_length=max_input_length,
+                truncation=True,
+                padding=False,
+                return_tensors="pt"
+            )
+            # Remove EOS token (last token)
+            input_ids = enc["input_ids"][0][:-1].cuda()
+            attention_mask = enc["attention_mask"][0][:-1].cuda()
+            metricx_score = metricx_model(input_ids.unsqueeze(0), attention_mask.unsqueeze(0))
+            # import ipdb; ipdb.set_trace()
+            metricx_values.append(metricx_score["predictions"].item())
         results["metricx"] = torch.tensor(metricx_values).mean().item()
 
     if "cometkiwi" in metrics:
         cometkiwi, reference_free = metric_objs["cometkiwi"]
-        data = [{"src": src, "mt": mt} for src, mt in zip(sources, preds)]
+        # comet_data = [{"src": src, "mt": mt} for src, mt in zip(sources, preds)]
         if reference_free:
-            data = [{"src": src, "mt": mt} for src, mt in zip(sources, preds)]
+            comet_data = [{"src": src, "mt": mt} for src, mt in zip(sources, preds)]
         else:
-            data = [{"src": src, "mt": mt, "ref": ref} for src, mt, ref in zip(sources, preds, refs)]
-        cometkiwi_score = cometkiwi.predict(data, batch_size=1)
+            comet_data = [{"src": src, "mt": mt, "ref": ref} for src, mt, ref in zip(sources, preds, refs)]
+        cometkiwi_score = cometkiwi.predict(comet_data, batch_size=8, gpus=1)
+        # import ipdb; ipdb.set_trace()
         results["cometkiwi"] = cometkiwi_score["system_score"]
 
     if "sacrebleu" in metrics:

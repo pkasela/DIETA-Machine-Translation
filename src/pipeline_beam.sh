@@ -5,21 +5,21 @@ green='\033[0;32m'
 clear='\033[0m'
 
 MODELS=(
-    #"Helsinki-NLP/opus-mt-en-it"
-    #"Helsinki-NLP/opus-mt-tc-big-en-it"
+    "Helsinki-NLP/opus-mt-en-it"
+    "Helsinki-NLP/opus-mt-tc-big-en-it"
     "ModelSpace/GemmaX2-28-9B-v0.1"
     "ModelSpace/GemmaX2-28-2B-v0.1"
-    #"facebook/mbart-large-50-many-to-many-mmt"
-    #"google/madlad400-3b-mt"
-    #"google/madlad400-7b-mt"
-    #"facebook/nllb-200-distilled-600M"
-    #"facebook/nllb-200-distilled-1.3B"
-    #"facebook/nllb-200-3.3B"
+    "facebook/mbart-large-50-many-to-many-mmt"
+    "google/madlad400-3b-mt"
+    "google/madlad400-7b-mt"
+    "facebook/nllb-200-distilled-600M"
+    "facebook/nllb-200-distilled-1.3B"
+    "facebook/nllb-200-3.3B"
 )
-DATASETS="wmt24 flores tatoeba ntrix"
+DATASETS="wmt24 flores"
 
 DATASETS=(
-    "wikinews"
+    "flores"
 )
 FLORES_PATH="../datasets/flores200_dataset"
 TATOEBA_PATH="../datasets/tatoeba"
@@ -30,7 +30,7 @@ RESULTS_PATH="../results/en_it"
 BATCH_SIZE=1
 DEVICE="cuda"
 NUM_BEAM=5
-METRICS="bleu,chrf,chrf++"
+METRICS="bleu"
 COMET_MODEL="Unbabel/wmt22-comet-da"
 
 for MODEL in "${MODELS[@]}"; do

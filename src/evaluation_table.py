@@ -57,6 +57,7 @@ def load_metric_objects(metrics, comet_model, bleurt_model="BLEURT-20"):
 
 def evaluate_metrics(tsv_path, metrics, metric_objs):
     df = pd.read_csv(tsv_path, sep='\t', lineterminator='\n')
+    df["translation"] = df["translation"].fillna(df["source"])
     refs = df["target"].tolist()
     preds = df["translation"].tolist()
     sources = df["source"].tolist()
@@ -114,7 +115,9 @@ def evaluate_metrics(tsv_path, metrics, metric_objs):
             comet_data = [{"src": src, "mt": mt} for src, mt in zip(sources, preds)]
         else:
             comet_data = [{"src": src, "mt": mt, "ref": ref} for src, mt, ref in zip(sources, preds, refs)]
-        cometkiwi_score = cometkiwi.predict(comet_data, batch_size=8, gpus=1)
+        # import ipdb; ipdb.set_trace()
+        cometkiwi_score = cometkiwi.predict(comet_data, batch_size=32, gpus=1)
+
         # import ipdb; ipdb.set_trace()
         results["cometkiwi"] = cometkiwi_score["system_score"]
 

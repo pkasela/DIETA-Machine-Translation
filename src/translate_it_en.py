@@ -198,7 +198,7 @@ def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, n
     # Load the dataset
     if dataset_name == "flores":
         # Load the Flores dataset
-        dataset = FloresDataset(dataset_path, "dev", "eng_Latn", "ita_Latn")
+        dataset = FloresDataset(dataset_path, "devtest", "eng_Latn", "ita_Latn")
     elif dataset_name == "tatoeba":
         # Load the Tatoeba dataset
         dataset = TatoebaDataset(dataset_path, "test", "eng", "ita")

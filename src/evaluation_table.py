@@ -1,5 +1,5 @@
 import os
-os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+# os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import pandas as pd
 import evaluate
@@ -32,10 +32,10 @@ def load_metric_objects(metrics, comet_model, bleurt_model="BLEURT-20"):
         elif metric == "comet":
             metric_objs["comet"] = evaluate.load("comet", model=comet_model)
         elif metric == "metricx":
-            metrix_model_name = "google/metricx-23-qe-xl-v2p0"
+            metrix_model_name = "google/metricx-24-hybrid-xl-v2p6-bfloat16"
             metrix_tokenizer_name = "google/mt5-xl"
             reference_free = True
-            max_input_length = 1024
+            max_input_length = 1536
             metrix_tokenizer = AutoTokenizer.from_pretrained(metrix_tokenizer_name)
             metrix_model = MT5ForRegression.from_pretrained(metrix_model_name)
             metrix_model = metrix_model.cuda()
@@ -88,11 +88,13 @@ def evaluate_metrics(tsv_path, metrics, metric_objs):
     if "metricx" in metrics:
         metricx_model, metricx_tokenizer, reference_free, max_input_length = metric_objs["metricx"]
         metricx_values = []
-        for i in range(len(sources)):
+        for i in tqdm(range(len(sources))):
             if reference_free:
-                input_text = f"candidate: {preds[i]} source: {sources[i]}"
+                # input_text = f"candidate: {preds[i]} source: {sources[i]}"
+                input_text = f"source: {sources[i]} candidate: {preds[i]}"
             else:
-                input_text = f"candidate: {preds[i]} reference: {refs[i]}"
+                # input_text = f"candidate: {preds[i]} reference: {refs[i]}"
+                input_text = f"source: {sources[i]} candidate: {preds[i]} references: {refs[i]}"
             enc = metricx_tokenizer(
                 input_text,
                 max_length=max_input_length,
@@ -103,6 +105,7 @@ def evaluate_metrics(tsv_path, metrics, metric_objs):
             # Remove EOS token (last token)
             input_ids = enc["input_ids"][0][:-1].cuda()
             attention_mask = enc["attention_mask"][0][:-1].cuda()
+            #with torch.autocast(device_type='cuda'):
             metricx_score = metricx_model(input_ids.unsqueeze(0), attention_mask.unsqueeze(0))
             # import ipdb; ipdb.set_trace()
             metricx_values.append(metricx_score["predictions"].item())

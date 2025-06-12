@@ -23,6 +23,7 @@ from dataset.tatoeba import TatoebaDataset
 from dataset.wmt24 import Wmt24Dataset
 from dataset.ntrex import NtrexDataset
 from dataset.wikinews import WikinewsDataset
+from dataset.biowmt import BiowmtDataset
 
 def get_model_and_tokenizer(model_name, device="cuda"):
     """
@@ -174,7 +175,7 @@ Italian: <|im_end|>
 
 @click.command()
 @click.option('--model_name', required=True, help='Name of the pre-trained model.')
-@click.option('--dataset_name', required=True, type=click.Choice(['flores', 'tatoeba', 'wmt24', 'ntrex', 'wikinews']), help='Dataset to use.')
+@click.option('--dataset_name', required=True, type=click.Choice(['flores', 'tatoeba', 'wmt24', 'ntrex', 'wikinews', 'biowmt']), help='Dataset to use.')
 @click.option('--dataset_path', required=True, help='Path to the dataset.')
 @click.option('--results_path', required=True, help='Path to save the results.')
 @click.option('--batch_size', default=128, show_default=True, help='Batch size for DataLoader.')
@@ -186,7 +187,7 @@ def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, n
 
     Args:
         model_name (str): Name of the pre-trained model.
-        dataset_name (str): Name of the dataset to use ("flores", "tatoeba", "wmt24", "ntrex").
+        dataset_name (str): Name of the dataset to use ("flores", "tatoeba", "wmt24", "ntrex", "wikinews", "biomwt").
         dataset_path (str): Path to the dataset.
         results_path (str): Path to save the results.
         device (str): Device to use for computation ("cuda" or "cpu").
@@ -215,6 +216,8 @@ def main(model_name, dataset_name, dataset_path, results_path, batch_size=128, n
         dataset = NtrexDataset(dataset_path, "eng-US", "ita")
     elif dataset_name == "wikinews":
         dataset = WikinewsDataset(dataset_path, "en", "it")
+    elif dataset_name == "biowmt":
+        dataset = BiowmtDataset(dataset_path, "en", "it", "en2it")
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=0)
     final = {'source': [], 'target': [], 'translation': []}
     # Iterate through the dataset

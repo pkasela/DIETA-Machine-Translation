@@ -30,17 +30,19 @@ MODELS=(
 # MODELS=()
 # DATASETS="flores tatoeba wmt24 ntrex"
 DATASETS=(
-    "flores"
+    #"flores"
     #"tatoeba"
     #"wmt24"
     #"ntrex"
     #"wikinews"
+    "biowmt"
 )
 FLORES_PATH="../datasets/flores200_dataset"
 TATOEBA_PATH="../datasets/tatoeba"
 WMT24_PATH="../datasets/wmt24pp"
 NTREX_PATH="../datasets/NTREX-128"
 WIKINEWS_PATH="../datasets/wikinews"
+BIOWMT_PATH="../datasets/biowmt"
 RESULTS_PATH="../results/en_it"
 BATCH_SIZE=1
 DEVICE="cuda"
@@ -62,6 +64,8 @@ for MODEL in "${MODELS[@]}"; do
             DATAPATH="$NTREX_PATH"
         elif [ "$DATASET" = "wikinews" ]; then
             DATAPATH="$WIKINEWS_PATH"
+        elif [ "$DATASET" = "biowmt" ]; then
+            DATAPATH="$BIOWMT_PATH"
         fi
 
         printf ${clear}"Translating with model: $MODEL on dataset: $DATASET\n"
@@ -88,7 +92,7 @@ done
 
 printf ${clear}"All translations and evaluations are done.\n"
 
-METRICS="bleu,sacrebleu,chrf,cometkiwi,metricx,comet"
+METRICS="bleu,sacrebleu,chrf,metricx,comet"
 # METRICS="bleu,bleurt"
 for DATASET in "${DATASETS[@]}"; do
     python3 evaluation_table.py \

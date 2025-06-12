@@ -19,13 +19,15 @@ MODELS=(
 )
 DATASETS="flores tatoeba wmt24 ntrex"
 DATASETS=(
-    "flores"
+    #"flores"
+    "biowmt"
 )
 FLORES_PATH="../datasets/flores200_dataset"
 TATOEBA_PATH="../datasets/tatoeba"
 WMT24_PATH="../datasets/wmt24pp"
 NTREX_PATH="../datasets/NTREX-128"
 WIKINEWS_PATH="../datasets/wikinews"
+BIOWMT_PATH="../datasets/biowmt"
 RESULTS_PATH="../results/it_en"
 BATCH_SIZE=1
 DEVICE="cuda"
@@ -46,6 +48,8 @@ for MODEL in "${MODELS[@]}"; do
             DATAPATH="$NTREX_PATH"
         elif [ "$DATASET" = "wikinews" ]; then
             DATAPATH="$WIKINEWS_PATH"
+        elif [ "$DATASET" = "biowmt" ]; then
+            DATAPATH="$BIOWMT_PATH"
         fi
 
         printf ${clear}"Translating with model: $MODEL on dataset: $DATASET\n"

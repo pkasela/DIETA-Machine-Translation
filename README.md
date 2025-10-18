@@ -45,7 +45,7 @@ All checkpoints share the same 0.5B decoder-only backbone; they differ only in t
 
 ## Evaluation Set
 
-Paired **EN source** and **IT reference** used in the paper's evaluations.
+Paired **EN source** and **IT reference** used in the paper's evaluations (450 sentences).
 
 * **English (source) — Download:** https://drive.google.com/file/d/1nFhT1mPs4W8wiz6byVYzCS7GEGToYBCt/view?usp=sharing
 * **Italian (human post-edited/reference) — Download:** https://drive.google.com/file/d/1GGjixOnOOc_vyEI2BhV9WFswKggf8yVV/view?usp=sharing

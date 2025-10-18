@@ -1,4 +1,4 @@
-# DIETA-Machine-Translation
+# DIETA-Machine-Translation EN-IT
 
 Paper at https://clic2025.unica.it/wp-content/uploads/2025/09/51_main_long.pdf
 

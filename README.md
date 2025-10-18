@@ -2,7 +2,7 @@
 
 Paper at https://clic2025.unica.it/wp-content/uploads/2025/09/51_main_long.pdf
 
-**DIETA** is a compact, decoder-only Transformer (≈0.5B params) trained specifically for high-quality Italian↔English MT, released with five model checkpoints, three training datasets, and one evaluation set. 
+**DIETA** is a compact, **decoder-only Transformer (≈0.5B params) trained specifically for high-quality Italian↔English MT**, released with five model checkpoints, three training datasets, and one evaluation set. 
 
 ## Overview
 

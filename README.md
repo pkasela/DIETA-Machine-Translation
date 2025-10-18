@@ -43,6 +43,14 @@ All checkpoints share the same 0.5B decoder-only backbone; they differ only in t
 3. **DIETA-BT-FineWeb v1** — back-translations from FineWeb (**~25.4 GB**)
    • **Download:** https://drive.google.com/file/d/1H-4yRPMFBK64HboaL0uZGrtyxtwNbfqJ/view?usp=sharing
 
+## Evaluation Set
+
+Paired **EN source** and **IT reference** used in the paper's evaluations.
+
+* **English (source) — Download:** https://drive.google.com/file/d/1nFhT1mPs4W8wiz6byVYzCS7GEGToYBCt/view?usp=sharing
+* **Italian (human post-edited/reference) — Download:** https://drive.google.com/file/d/1GGjixOnOOc_vyEI2BhV9WFswKggf8yVV/view?usp=sharing
+
+
 ## Prompting format
 
 During training we used **explicit direction tags** (minimal prefix format):

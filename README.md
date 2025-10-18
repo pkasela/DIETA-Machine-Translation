@@ -38,7 +38,7 @@ All checkpoints share the same 0.5B decoder-only backbone; they differ only in t
 
 1. **DIETA-Parallel-ENIT v1** — curated EN–IT bitext from OPUS (**~39.7 GB**)
    • **Download:** https://drive.google.com/file/d/1D5oMNs4AnveCkIyx5FRQUJxOzmSm2riv/view?usp=sharing
-2. **DIETA-BT-NewsCrawl v1** — back-translations from NewsCrawl/other news sources (**~17 GB**)
+2. **DIETA-BT-NewsCrawl v1** — back-translations from NewsCrawl sources (**~17 GB**)
    • **Download:** https://drive.google.com/file/d/1Ewn-9BbupFOeMCSyu-u35vUgJvPvFrrL/view?usp=sharing
 3. **DIETA-BT-FineWeb v1** — back-translations from FineWeb (**~25.4 GB**)
    • **Download:** https://drive.google.com/file/d/1H-4yRPMFBK64HboaL0uZGrtyxtwNbfqJ/view?usp=sharing

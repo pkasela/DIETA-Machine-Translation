@@ -23,15 +23,15 @@ All DIETA checkpoints use the **Minerva** tokenizer:
 
 All checkpoints share the same 0.5B decoder-only backbone; they differ only in the data mixture / continued training schedule. 
 
-* **DIETA (parallel-only)** — trained on direction-tagged EN↔IT bitext
+* **DIETA (parallel-only)** — trained on direction-tagged EN↔IT bitext     
   Weights: https://drive.google.com/file/d/11a_SeSQu5QmuS2-tw_Yc4m_5TIHIEA-K/view?usp=sharing
-* **DIETA+BT** — parallel + NewsCrawl back-translations
+* **DIETA+BT** — parallel + NewsCrawl back-translations     
   Weights: https://drive.google.com/file/d/1MdRcadubEz-ft_vfOyIsrbPA233ONIA6/view?usp=sharing
-* **DIETA+cont** — continues **DIETA** for a 2nd epoch on the same mixture
+* **DIETA+cont** — continues **DIETA** for a 2nd epoch on parallel + NewsCrawl back-translations       
   Weights: https://drive.google.com/file/d/1CnFxGvXfZSnEixVb-jXNgwXdPZjqK6PI/view?usp=sharing
-* **DIETA+nosynth** — continues **DIETA** for a 2nd epoch on **parallel only**
+* **DIETA+nosynth** — continues **DIETA** for a 2nd epoch on **parallel only**     
   Weights: https://drive.google.com/file/d/1hNFwZLfRQNlRBCUSOp1Azmer4S0vCFpo/view?usp=sharing
-* **DIETA+allsynth** — continues **DIETA+cont** for a 3rd epoch on **parallel + NewsCrawl + FineWeb**
+* **DIETA+allsynth** — continues **DIETA+cont** for a 3rd epoch on **parallel + NewsCrawl + FineWeb**     
   Weights: https://drive.google.com/file/d/1bxhBKY9JGizs4EmMdqNxpeDmLADXM6pN/view?usp=sharing
 
 ## Training Datasets (3 releases)

@@ -62,6 +62,10 @@ IT: <italian sentence> ENG: <english translation>
 
 Use the same scheme at inference for best results.
 
+## Demo code
+
+A tiny, **CPU-only** example is provided in `demo_dieta.py`. It shows how to load a DIETA checkpoint, apply the **Minerva** tokenizer, and translate a couple of sentences **EN→IT** and **IT→EN** using the prompt tags described above.    
+
 ## Citation
 
 Please cite the following paper if you use the data or code in this repo.

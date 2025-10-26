@@ -31,7 +31,7 @@ All checkpoints share the same 0.5B decoder-only backbone; they are all trained 
   Weights: https://drive.google.com/file/d/1CnFxGvXfZSnEixVb-jXNgwXdPZjqK6PI/view?usp=sharing
 * **DIETA+nosynth** — continues **DIETA** for a 2nd epoch on OPUS parallel only     
   Weights: https://drive.google.com/file/d/1hNFwZLfRQNlRBCUSOp1Azmer4S0vCFpo/view?usp=sharing
-* **DIETA+allsynth** — continues **DIETA+cont** for a 3rd epoch on OPUS parallel + NewsCrawl + FineWeb         
+* **DIETA+allsynth** — continues **DIETA+cont** for a 3rd epoch on OPUS parallel + NewsCrawl back-translations + FineWeb back-translations        
   Weights: https://drive.google.com/file/d/1bxhBKY9JGizs4EmMdqNxpeDmLADXM6pN/view?usp=sharing
 
 ## Training Datasets (3 releases)

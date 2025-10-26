@@ -23,7 +23,7 @@ All DIETA checkpoints use the **Minerva** tokenizer:
 
 All checkpoints share the same 0.5B decoder-only backbone; they are all trained on direction-tagged EN↔IT bitext; they differ only in the data mixture / continued training schedule. 
 
-* **DIETA (parallel-only)** — trained on OPUS parallel data only         
+* **DIETA** — trained on OPUS parallel data only         
   Weights: https://drive.google.com/file/d/11a_SeSQu5QmuS2-tw_Yc4m_5TIHIEA-K/view?usp=sharing
 * **DIETA+BT** — trained on OPUS parallel + NewsCrawl back-translations     
   Weights: https://drive.google.com/file/d/1MdRcadubEz-ft_vfOyIsrbPA233ONIA6/view?usp=sharing

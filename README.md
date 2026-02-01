@@ -11,6 +11,19 @@ DIETA focuses on **bidirectional EN↔IT translation** and is trained on a large
 Code based on the X-Transformers library by Lucidrains:
 https://github.com/lucidrains/x-transformers
 
+## Reproducibility (Megatron-LM / Singularity HPC)
+
+If you want to reproduce this work using **Megatron-LM** in a containerized HPC setting (e.g., **air-gapped clusters** using **Singularity**), we recommend the hands-on notebooks and playbooks from NVIDIA AI Technology Center:
+
+- [https://github.com/NVIDIA-AI-Technology-Center/megatron-lm-singularity-hpc](https://github.com/NVIDIA-AI-Technology-Center/megatron-lm-singularity-hpc)
+
+In particular, see the playbook:
+
+- **Train a Decoder-only Small Model for Machine Translation on Leonardo**  
+  [https://github.com/NVIDIA-AI-Technology-Center/megatron-lm-singularity-hpc/blob/main/00-mt-slm.md](https://github.com/NVIDIA-AI-Technology-Center/megatron-lm-singularity-hpc/blob/main/00-mt-slm.md)
+
+That guide walks through Singularity image setup, data tokenization, and multi-node Megatron-LM training.    
+
 ## Tokenizer (shared across all models)
 
 All DIETA checkpoints use the **Minerva** tokenizer:

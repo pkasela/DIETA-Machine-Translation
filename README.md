@@ -13,7 +13,7 @@ https://github.com/lucidrains/x-transformers
 
 ## Reproducibility (Megatron-LM / Singularity HPC)
 
-If you want to reproduce this work using **Megatron-LM** in a containerized HPC setting (e.g., **air-gapped clusters** using **Singularity**), we recommend the hands-on notebooks and playbooks from NVIDIA AI Technology Center:
+If you want to reproduce this work using **NVIDIA Megatron-LM** in a containerized HPC setting (e.g., **air-gapped clusters** using **Singularity**), we recommend the hands-on notebooks and playbooks from NVIDIA AI Technology Center:
 
 - [https://github.com/NVIDIA-AI-Technology-Center/megatron-lm-singularity-hpc](https://github.com/NVIDIA-AI-Technology-Center/megatron-lm-singularity-hpc)
 

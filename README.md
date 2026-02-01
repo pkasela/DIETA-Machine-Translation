@@ -84,13 +84,25 @@ A tiny, **CPU-only** example is provided in `demo_dieta.py`. It shows how to loa
 Please cite the following paper if you use the data or code in this repo.
 
 ```
-@inproceedings{kaselaetal_clicit2025,
-    title = "DIETA: A Decoder-only transformer-based model for Italian–English machine TrAnslation",
-    author = "Kasela, Pranav and Braga, Marco and Ghiotto, Alessandro and Pilzer, Andrea and Viviani, Marco and Raganato, Alessandro",
-    booktitle = "Proceedings of the 11th Italian Conference on Computational Linguistics (CLiC-it 2025)",
-    month = sept,
+@inproceedings{kasela-etal-2025-dieta,
+    title = "{DIETA}: A Decoder-only Transformer-based Model for {I}talian-{E}nglish Machine {T}r{A}nslation",
+    author = "Kasela, Pranav  and
+      Braga, Marco  and
+      Ghiotto, Alessandro  and
+      Pilzer, Andrea  and
+      Viviani, Marco  and
+      Raganato, Alessandro",
+    editor = "Bosco, Cristina  and
+      Jezek, Elisabetta  and
+      Polignano, Marco  and
+      Sanguinetti, Manuela",
+    booktitle = "Proceedings of the Eleventh Italian Conference on Computational Linguistics (CLiC-it 2025)",
+    month = sep,
     year = "2025",
     address = "Cagliari, Italy",
     publisher = "CEUR Workshop Proceedings",
+    url = "https://aclanthology.org/2025.clicit-1.52/",
+    pages = "539--549",
+    ISBN = "979-12-243-0587-3"
 }
 ```

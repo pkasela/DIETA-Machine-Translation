@@ -1,6 +1,6 @@
 # DIETA-Machine-Translation EN-IT
 
-Paper at https://clic2025.unica.it/wp-content/uploads/2025/09/51_main_long.pdf
+Paper at [https://aclanthology.org/2025.clicit-1.52/](https://aclanthology.org/2025.clicit-1.52/)
 
 **DIETA** is a compact, **decoder-only Transformer (≈0.5B params) trained specifically for high-quality Italian↔English MT**, released with five model checkpoints, three training datasets, and one evaluation set. 
 
